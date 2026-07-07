@@ -77,6 +77,10 @@ public class Review {
         return id;
     }
 
+    public Restaurant getRestaurant() {
+        return restaurant;
+    }
+
     public MenuItem getMenuItem() {
         return menuItem;
     }

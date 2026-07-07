@@ -5,6 +5,7 @@ import PublicLayout from '../layouts/PublicLayout';
 import StaffLayout from '../layouts/StaffLayout';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
+import AnalyticsPage from '../pages/dashboard/AnalyticsPage';
 import CategoryManagementPage from '../pages/dashboard/CategoryManagementPage';
 import DashboardPage from '../pages/dashboard/DashboardPage';
 import MenuManagementPage from '../pages/dashboard/MenuManagementPage';
@@ -42,6 +43,7 @@ function AppRoutes() {
           <Route path="orders" element={<OrdersPage />} />
           <Route path="staff" element={<StaffManagementPage />} />
           <Route path="reviews" element={<ReviewManagementPage />} />
+          <Route path="analytics" element={<AnalyticsPage />} />
         </Route>
       </Route>
 

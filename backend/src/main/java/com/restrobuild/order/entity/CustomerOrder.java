@@ -105,6 +105,10 @@ public class CustomerOrder {
         return id;
     }
 
+    public Restaurant getRestaurant() {
+        return restaurant;
+    }
+
     public RestaurantTable getTable() {
         return table;
     }
