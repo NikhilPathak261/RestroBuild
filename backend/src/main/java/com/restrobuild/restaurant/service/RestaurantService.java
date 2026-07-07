@@ -48,7 +48,8 @@ public class RestaurantService {
                 request.address().trim(),
                 request.phone().trim(),
                 email,
-                request.openingHours().trim()
+                request.openingHours().trim(),
+                generateUniqueSlug(request.name())
         );
 
         Restaurant savedRestaurant = restaurantRepository.save(restaurant);
@@ -99,5 +100,25 @@ public class RestaurantService {
 
     private String trimNullable(String value) {
         return value == null ? null : value.trim();
+    }
+
+    private String generateUniqueSlug(String name) {
+        String baseSlug = name.trim()
+                .toLowerCase()
+                .replaceAll("[^a-z0-9]+", "-")
+                .replaceAll("(^-|-$)", "");
+
+        if (baseSlug.isBlank()) {
+            baseSlug = "restaurant";
+        }
+
+        String slug = baseSlug;
+        int counter = 2;
+        while (restaurantRepository.existsBySlug(slug)) {
+            slug = baseSlug + "-" + counter;
+            counter++;
+        }
+
+        return slug;
     }
 }

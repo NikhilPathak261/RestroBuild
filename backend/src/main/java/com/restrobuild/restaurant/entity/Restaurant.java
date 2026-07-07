@@ -22,6 +22,9 @@ public class Restaurant {
     @Column(nullable = false, length = 100)
     private String name;
 
+    @Column(nullable = false, unique = true, length = 140)
+    private String slug;
+
     @Column(length = 1000)
     private String description;
 
@@ -52,6 +55,12 @@ public class Restaurant {
     @Column(name = "template_name")
     private String templateName;
 
+    @Column(length = 2000)
+    private String about;
+
+    @Column(name = "is_published", nullable = false)
+    private boolean published = false;
+
     @Column(name = "is_active", nullable = false)
     private boolean active = true;
 
@@ -70,9 +79,11 @@ public class Restaurant {
             String address,
             String phone,
             String email,
-            String openingHours
+            String openingHours,
+            String slug
     ) {
         this.name = name;
+        this.slug = slug;
         this.description = description;
         this.address = address;
         this.phone = phone;
@@ -99,6 +110,20 @@ public class Restaurant {
         this.openingHours = openingHours;
     }
 
+    public void updateTheme(String templateName, String primaryColor, String secondaryColor) {
+        this.templateName = templateName;
+        this.primaryColor = primaryColor;
+        this.secondaryColor = secondaryColor;
+    }
+
+    public void updateAbout(String about) {
+        this.about = about;
+    }
+
+    public void publish() {
+        this.published = true;
+    }
+
     @PrePersist
     void prePersist() {
         Instant now = Instant.now();
@@ -117,6 +142,10 @@ public class Restaurant {
 
     public String getName() {
         return name;
+    }
+
+    public String getSlug() {
+        return slug;
     }
 
     public String getDescription() {
@@ -157,6 +186,14 @@ public class Restaurant {
 
     public String getTemplateName() {
         return templateName;
+    }
+
+    public String getAbout() {
+        return about;
+    }
+
+    public boolean isPublished() {
+        return published;
     }
 
     public boolean isActive() {

@@ -11,6 +11,7 @@ public class RestaurantMapper {
         return new RestaurantResponse(
                 restaurant.getId(),
                 restaurant.getName(),
+                restaurant.getSlug(),
                 restaurant.getDescription(),
                 restaurant.getAddress(),
                 restaurant.getPhone(),
@@ -21,6 +22,8 @@ public class RestaurantMapper {
                 restaurant.getPrimaryColor(),
                 restaurant.getSecondaryColor(),
                 restaurant.getTemplateName(),
+                restaurant.getAbout(),
+                restaurant.isPublished(),
                 restaurant.isActive()
         );
     }

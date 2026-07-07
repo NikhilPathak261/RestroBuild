@@ -6,6 +6,7 @@ import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import DashboardPage from '../pages/dashboard/DashboardPage';
 import RestaurantProfilePage from '../pages/dashboard/RestaurantProfilePage';
+import WebsiteSettingsPage from '../pages/dashboard/WebsiteSettingsPage';
 import PublicHomePage from '../pages/public/PublicHomePage';
 import NotFoundPage from '../pages/public/NotFoundPage';
 import UnauthorizedPage from '../pages/public/UnauthorizedPage';
@@ -23,6 +24,7 @@ function AppRoutes() {
         <Route path="/dashboard" element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />
           <Route path="profile" element={<RestaurantProfilePage />} />
+          <Route path="website" element={<WebsiteSettingsPage />} />
         </Route>
       </Route>
 
