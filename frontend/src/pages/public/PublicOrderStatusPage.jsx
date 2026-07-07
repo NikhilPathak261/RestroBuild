@@ -20,7 +20,7 @@ function PublicOrderStatusPage() {
       try {
         const response = await orderService.getOrder(orderId);
         if (isMounted) {
-          setOrder(response.data);
+          setOrder(response);
         }
       } catch {
         if (isMounted) {
@@ -42,7 +42,7 @@ function PublicOrderStatusPage() {
 
   useEffect(() => {
     return subscribeToOrder(orderId, () => {
-      orderService.getOrder(orderId).then((response) => setOrder(response.data));
+      orderService.getOrder(orderId).then((response) => setOrder(response));
     });
   }, [orderId]);
 

@@ -33,7 +33,7 @@ function CategoryManagementPage() {
 
     try {
       const response = await categoryService.getCategories();
-      setCategories(response.data);
+      setCategories(response);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to load categories.');
     } finally {

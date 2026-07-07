@@ -23,12 +23,12 @@ function AnalyticsPage() {
           analyticsService.getRatingsSummary(),
         ]);
 
-        setSummary(summaryResponse.data);
-        setDailyRevenue(dailyResponse.data);
-        setTopItems(topResponse.data);
-        setBottomItems(bottomResponse.data);
-        setCategoryStats(categoryResponse.data);
-        setRatings(ratingsResponse.data);
+        setSummary(summaryResponse);
+        setDailyRevenue(dailyResponse);
+        setTopItems(topResponse);
+        setBottomItems(bottomResponse);
+        setCategoryStats(categoryResponse);
+        setRatings(ratingsResponse);
       } catch (error) {
         toast.error(error.response?.data?.message || 'Failed to load analytics.');
       } finally {

@@ -29,7 +29,7 @@ function WebsiteSettingsPage() {
           return;
         }
 
-        const settings = response.data;
+        const settings = response;
         setTheme({
           template: settings.templateName || 'MODERN',
           primaryColor: settings.primaryColor || '#B42318',
@@ -65,9 +65,9 @@ function WebsiteSettingsPage() {
     try {
       const response = await websiteService.updateTheme(theme);
       setTheme({
-        template: response.data.templateName,
-        primaryColor: response.data.primaryColor,
-        secondaryColor: response.data.secondaryColor,
+        template: response.templateName,
+        primaryColor: response.primaryColor,
+        secondaryColor: response.secondaryColor,
       });
       toast.success('Website theme updated.');
     } catch (error) {
@@ -97,7 +97,7 @@ function WebsiteSettingsPage() {
     try {
       const response = await websiteService.publishWebsite();
       setPublished(true);
-      setPublishedUrl(response.data.websiteUrl);
+      setPublishedUrl(response.websiteUrl);
       toast.success('Website published.');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to publish website.');

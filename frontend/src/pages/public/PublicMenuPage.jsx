@@ -39,8 +39,8 @@ function PublicMenuPage() {
         ]);
 
         if (isMounted) {
-          setCategories(categoryResponse.data);
-          setMenuItems(menuResponse.data);
+          setCategories(categoryResponse);
+          setMenuItems(menuResponse);
         }
       } catch {
         if (isMounted) {
@@ -82,7 +82,7 @@ function PublicMenuPage() {
         items: [{ menuItemId: item.id, quantity: 1 }],
       });
       toast.success('Order placed.');
-      navigate(`/r/${restaurantSlug}/orders/${response.data.id}?tableId=${tableId}`);
+      navigate(`/r/${restaurantSlug}/orders/${response.id}?tableId=${tableId}`);
     } catch (orderError) {
       toast.error(orderError.response?.data?.message || 'Failed to place order.');
     } finally {

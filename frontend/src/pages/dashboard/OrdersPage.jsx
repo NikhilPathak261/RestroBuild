@@ -15,7 +15,7 @@ function OrdersPage() {
 
     try {
       const response = await orderService.getRestaurantOrders(nextStatus);
-      setOrders(response.data);
+      setOrders(response);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to load orders.');
     } finally {

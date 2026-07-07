@@ -46,8 +46,8 @@ function MenuManagementPage() {
         categoryService.getCategories(),
         menuService.getMenuItems(),
       ]);
-      setCategories(categoryResponse.data);
-      setMenuItems(menuResponse.data);
+      setCategories(categoryResponse);
+      setMenuItems(menuResponse);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to load menu data.');
     } finally {

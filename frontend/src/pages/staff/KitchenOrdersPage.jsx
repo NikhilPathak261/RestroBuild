@@ -18,7 +18,7 @@ function KitchenOrdersPage({ status }) {
 
     try {
       const response = await loaders[status]();
-      setOrders(response.data);
+      setOrders(response);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to load kitchen orders.');
     } finally {

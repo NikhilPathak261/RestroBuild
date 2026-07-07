@@ -12,7 +12,7 @@ function ReviewManagementPage() {
 
     try {
       const response = await reviewService.getReviews(rating ? { rating } : {});
-      setReviews(response.data);
+      setReviews(response);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to load reviews.');
     } finally {

@@ -25,7 +25,7 @@ function StaffManagementPage() {
 
     try {
       const response = await staffService.getStaff();
-      setStaff(response.data);
+      setStaff(response);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to load staff.');
     } finally {

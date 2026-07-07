@@ -27,7 +27,7 @@ function RestaurantProfilePage() {
           return;
         }
 
-        const restaurant = response.data;
+        const restaurant = response;
         setRestaurantId(restaurant.id);
         setForm({
           name: restaurant.name || '',
@@ -68,7 +68,7 @@ function RestaurantProfilePage() {
         ? await restaurantService.updateRestaurant(form)
         : await restaurantService.createRestaurant(form);
 
-      setRestaurantId(response.data.id);
+      setRestaurantId(response.id);
       toast.success(restaurantId ? 'Restaurant updated.' : 'Restaurant created.');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to save restaurant profile.');

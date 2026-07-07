@@ -12,7 +12,7 @@ function WaiterOrdersPage() {
 
     try {
       const response = await orderService.getWaiterReadyOrders();
-      setOrders(response.data);
+      setOrders(response);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to load waiter orders.');
     } finally {

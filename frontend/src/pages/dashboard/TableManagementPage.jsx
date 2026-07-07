@@ -19,7 +19,7 @@ function TableManagementPage() {
 
     try {
       const response = await tableService.getTables();
-      setTables(response.data);
+      setTables(response);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to load tables.');
     } finally {
