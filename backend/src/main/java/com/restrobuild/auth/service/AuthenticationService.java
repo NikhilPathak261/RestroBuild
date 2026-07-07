@@ -9,6 +9,8 @@ import com.restrobuild.auth.entity.Owner;
 import com.restrobuild.auth.repository.OwnerRepository;
 import com.restrobuild.exception.BusinessException;
 import com.restrobuild.security.JwtService;
+import com.restrobuild.staff.entity.Staff;
+import com.restrobuild.staff.repository.StaffRepository;
 import io.jsonwebtoken.JwtException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.User;
@@ -20,15 +22,18 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthenticationService {
 
     private final OwnerRepository ownerRepository;
+    private final StaffRepository staffRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
     public AuthenticationService(
             OwnerRepository ownerRepository,
+            StaffRepository staffRepository,
             PasswordEncoder passwordEncoder,
             JwtService jwtService
     ) {
         this.ownerRepository = ownerRepository;
+        this.staffRepository = staffRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
     }
@@ -36,7 +41,7 @@ public class AuthenticationService {
     @Transactional
     public void registerOwner(RegisterOwnerRequest request) {
         String email = request.email().trim().toLowerCase();
-        if (ownerRepository.existsByEmailIgnoreCase(email)) {
+        if (ownerRepository.existsByEmailIgnoreCase(email) || staffRepository.existsByEmailIgnoreCase(email)) {
             throw new BusinessException("Email already exists.");
         }
 
@@ -51,18 +56,11 @@ public class AuthenticationService {
 
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
-        Owner owner = ownerRepository.findByEmailIgnoreCase(request.email().trim())
+        String email = request.email().trim();
+        return ownerRepository.findByEmailIgnoreCase(email)
+                .map(owner -> loginOwner(owner, request.password()))
+                .or(() -> staffRepository.findByEmailIgnoreCase(email).map(staff -> loginStaff(staff, request.password())))
                 .orElseThrow(() -> new BadCredentialsException("Invalid email or password."));
-
-        if (!passwordEncoder.matches(request.password(), owner.getPasswordHash())) {
-            throw new BadCredentialsException("Invalid email or password.");
-        }
-
-        String role = owner.getRole().name();
-        String accessToken = jwtService.generateAccessToken(owner.getEmail(), role);
-        String refreshToken = jwtService.generateRefreshToken(owner.getEmail(), role);
-
-        return new AuthResponse(accessToken, refreshToken, role);
     }
 
     @Transactional(readOnly = true)
@@ -76,19 +74,62 @@ public class AuthenticationService {
             throw new BadCredentialsException("Invalid refresh token.");
         }
 
-        Owner owner = ownerRepository.findByEmailIgnoreCase(email)
+        return ownerRepository.findByEmailIgnoreCase(email)
+                .map(owner -> refreshOwner(owner, refreshToken))
+                .or(() -> staffRepository.findByEmailIgnoreCase(email).map(staff -> refreshStaff(staff, refreshToken)))
                 .orElseThrow(() -> new BadCredentialsException("Invalid refresh token."));
+    }
+
+    private AuthResponse loginOwner(Owner owner, String password) {
+        if (!passwordEncoder.matches(password, owner.getPasswordHash())) {
+            throw new BadCredentialsException("Invalid email or password.");
+        }
 
         String role = owner.getRole().name();
-        if (!jwtService.isTokenValid(refreshToken, User
-                .withUsername(owner.getEmail())
-                .password(owner.getPasswordHash())
-                .authorities(role)
-                .disabled(!owner.isActive())
-                .build())) {
+        return new AuthResponse(
+                jwtService.generateAccessToken(owner.getEmail(), role),
+                jwtService.generateRefreshToken(owner.getEmail(), role),
+                role
+        );
+    }
+
+    private AuthResponse loginStaff(Staff staff, String password) {
+        if (!staff.isActive() || !passwordEncoder.matches(password, staff.getPasswordHash())) {
+            throw new BadCredentialsException("Invalid email or password.");
+        }
+
+        String role = staff.getRole().name();
+        return new AuthResponse(
+                jwtService.generateAccessToken(staff.getEmail(), role),
+                jwtService.generateRefreshToken(staff.getEmail(), role),
+                role
+        );
+    }
+
+    private RefreshTokenResponse refreshOwner(Owner owner, String refreshToken) {
+        String role = owner.getRole().name();
+        validateRefreshToken(refreshToken, owner.getEmail(), owner.getPasswordHash(), role, owner.isActive());
+        return new RefreshTokenResponse(jwtService.generateAccessToken(owner.getEmail(), role));
+    }
+
+    private RefreshTokenResponse refreshStaff(Staff staff, String refreshToken) {
+        String role = staff.getRole().name();
+        validateRefreshToken(refreshToken, staff.getEmail(), staff.getPasswordHash(), role, staff.isActive());
+        return new RefreshTokenResponse(jwtService.generateAccessToken(staff.getEmail(), role));
+    }
+
+    private void validateRefreshToken(String refreshToken, String email, String passwordHash, String role, boolean active) {
+        if (!active) {
             throw new BadCredentialsException("Invalid refresh token.");
         }
 
-        return new RefreshTokenResponse(jwtService.generateAccessToken(owner.getEmail(), role));
+        if (!jwtService.isTokenValid(refreshToken, User
+                .withUsername(email)
+                .password(passwordHash)
+                .authorities(role)
+                .disabled(!active)
+                .build())) {
+            throw new BadCredentialsException("Invalid refresh token.");
+        }
     }
 }

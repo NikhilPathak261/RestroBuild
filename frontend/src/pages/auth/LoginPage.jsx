@@ -18,9 +18,15 @@ function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await signIn(form);
+      const auth = await signIn(form);
       toast.success('Login successful.');
-      navigate('/dashboard', { replace: true });
+      if (auth.role === 'ROLE_KITCHEN') {
+        navigate('/kitchen/pending', { replace: true });
+      } else if (auth.role === 'ROLE_WAITER') {
+        navigate('/waiter/ready', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Login failed.');
     } finally {

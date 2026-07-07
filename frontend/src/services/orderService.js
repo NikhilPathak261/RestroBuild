@@ -32,8 +32,28 @@ export async function markPreparing(orderId) {
   return response.data;
 }
 
+export async function getKitchenPendingOrders() {
+  const response = await apiClient.get('/kitchen/orders/pending');
+  return response.data;
+}
+
+export async function getKitchenPreparingOrders() {
+  const response = await apiClient.get('/kitchen/orders/preparing');
+  return response.data;
+}
+
+export async function getKitchenReadyOrders() {
+  const response = await apiClient.get('/kitchen/orders/ready');
+  return response.data;
+}
+
 export async function markReady(orderId) {
   const response = await apiClient.patch(`/kitchen/orders/${orderId}/ready`);
+  return response.data;
+}
+
+export async function getWaiterReadyOrders() {
+  const response = await apiClient.get('/waiter/orders/ready');
   return response.data;
 }
 
