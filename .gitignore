@@ -1,0 +1,21 @@
+# Architecture documents
+arch/
+
+# Environment variables
+.env
+.env.*
+
+# Backend build files
+backend/target/
+
+# Frontend dependencies and build
+frontend/node_modules/
+frontend/dist/
+
+# IDE
+.idea/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
