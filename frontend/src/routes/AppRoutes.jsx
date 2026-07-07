@@ -7,6 +7,7 @@ import RegisterPage from '../pages/auth/RegisterPage';
 import CategoryManagementPage from '../pages/dashboard/CategoryManagementPage';
 import DashboardPage from '../pages/dashboard/DashboardPage';
 import MenuManagementPage from '../pages/dashboard/MenuManagementPage';
+import OrdersPage from '../pages/dashboard/OrdersPage';
 import RestaurantProfilePage from '../pages/dashboard/RestaurantProfilePage';
 import TableManagementPage from '../pages/dashboard/TableManagementPage';
 import WebsiteSettingsPage from '../pages/dashboard/WebsiteSettingsPage';
@@ -33,6 +34,7 @@ function AppRoutes() {
           <Route path="categories" element={<CategoryManagementPage />} />
           <Route path="menu" element={<MenuManagementPage />} />
           <Route path="tables" element={<TableManagementPage />} />
+          <Route path="orders" element={<OrdersPage />} />
         </Route>
       </Route>
 

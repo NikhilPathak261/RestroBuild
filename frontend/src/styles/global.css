@@ -238,7 +238,8 @@ button:disabled {
   margin: 0;
 }
 
-.list-header input {
+.list-header input,
+.list-header select {
   border: 1px solid #d0d5dd;
   border-radius: 6px;
   font: inherit;

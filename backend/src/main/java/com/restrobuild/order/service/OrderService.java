@@ -101,18 +101,74 @@ public class OrderService {
     @Transactional
     public void cancelOrder(Long orderId) {
         Restaurant restaurant = authenticatedUserService.getAuthenticatedOwnerRestaurant();
-        CustomerOrder order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found."));
-
-        if (!order.getTable().getRestaurant().getId().equals(restaurant.getId())) {
-            throw new ResourceNotFoundException("Order not found.");
-        }
+        CustomerOrder order = getRestaurantOrder(orderId, restaurant.getId());
 
         if (order.getStatus() != OrderStatus.PENDING) {
             throw new BusinessException("Only pending orders may be cancelled.");
         }
 
         order.cancel();
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getKitchenOrders(OrderStatus status) {
+        Restaurant restaurant = authenticatedUserService.getAuthenticatedOwnerRestaurant();
+        List<CustomerOrder> orders = status == null
+                ? orderRepository.findByRestaurantIdAndStatusInOrderByOrderedAtDesc(
+                        restaurant.getId(),
+                        List.of(OrderStatus.PENDING, OrderStatus.PREPARING, OrderStatus.READY)
+                )
+                : orderRepository.findByRestaurantIdAndStatusOrderByOrderedAtDesc(restaurant.getId(), status);
+
+        return orders.stream().map(orderMapper::toResponse).toList();
+    }
+
+    @Transactional
+    public OrderResponse markPreparing(Long orderId) {
+        Restaurant restaurant = authenticatedUserService.getAuthenticatedOwnerRestaurant();
+        CustomerOrder order = getRestaurantOrder(orderId, restaurant.getId());
+
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new BusinessException("Only pending orders may be marked preparing.");
+        }
+
+        order.markPreparing();
+        return orderMapper.toResponse(order);
+    }
+
+    @Transactional
+    public OrderResponse markReady(Long orderId) {
+        Restaurant restaurant = authenticatedUserService.getAuthenticatedOwnerRestaurant();
+        CustomerOrder order = getRestaurantOrder(orderId, restaurant.getId());
+
+        if (order.getStatus() != OrderStatus.PREPARING) {
+            throw new BusinessException("Only preparing orders may be marked ready.");
+        }
+
+        order.markReady();
+        return orderMapper.toResponse(order);
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getWaiterReadyOrders() {
+        Restaurant restaurant = authenticatedUserService.getAuthenticatedOwnerRestaurant();
+        return orderRepository.findByRestaurantIdAndStatusOrderByOrderedAtDesc(restaurant.getId(), OrderStatus.READY)
+                .stream()
+                .map(orderMapper::toResponse)
+                .toList();
+    }
+
+    @Transactional
+    public OrderResponse markServed(Long orderId) {
+        Restaurant restaurant = authenticatedUserService.getAuthenticatedOwnerRestaurant();
+        CustomerOrder order = getRestaurantOrder(orderId, restaurant.getId());
+
+        if (order.getStatus() != OrderStatus.READY) {
+            throw new BusinessException("Only ready orders may be marked served.");
+        }
+
+        order.markServed();
+        return orderMapper.toResponse(order);
     }
 
     @Transactional(readOnly = true)
@@ -129,6 +185,15 @@ public class OrderService {
     private CustomerOrder getOrderOrThrow(Long orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found."));
+    }
+
+    private CustomerOrder getRestaurantOrder(Long orderId, Long restaurantId) {
+        CustomerOrder order = getOrderOrThrow(orderId);
+        if (!order.getTable().getRestaurant().getId().equals(restaurantId)) {
+            throw new ResourceNotFoundException("Order not found.");
+        }
+
+        return order;
     }
 
     private String trimNullable(String value) {

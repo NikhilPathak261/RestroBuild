@@ -14,4 +14,6 @@ public interface CustomerOrderRepository extends JpaRepository<CustomerOrder, Lo
     List<CustomerOrder> findByRestaurantIdOrderByOrderedAtDesc(Long restaurantId);
 
     List<CustomerOrder> findByRestaurantIdAndStatusOrderByOrderedAtDesc(Long restaurantId, OrderStatus status);
+
+    List<CustomerOrder> findByRestaurantIdAndStatusInOrderByOrderedAtDesc(Long restaurantId, Collection<OrderStatus> statuses);
 }

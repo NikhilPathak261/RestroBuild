@@ -77,6 +77,18 @@ public class CustomerOrder {
         status = OrderStatus.CANCELLED;
     }
 
+    public void markPreparing() {
+        status = OrderStatus.PREPARING;
+    }
+
+    public void markReady() {
+        status = OrderStatus.READY;
+    }
+
+    public void markServed() {
+        status = OrderStatus.SERVED;
+    }
+
     @PrePersist
     void prePersist() {
         Instant now = Instant.now();
