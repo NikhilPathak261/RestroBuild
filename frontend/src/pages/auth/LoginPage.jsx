@@ -1,0 +1,59 @@
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { useAuth } from '../../hooks/useAuth';
+
+function LoginPage() {
+  const { signIn } = useAuth();
+  const navigate = useNavigate();
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  function handleChange(event) {
+    setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+  }
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      await signIn(form);
+      toast.success('Login successful.');
+      navigate('/dashboard', { replace: true });
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Login failed.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <form className="form-card" onSubmit={handleSubmit}>
+      <div>
+        <p className="eyebrow">Welcome back</p>
+        <h1>Login</h1>
+      </div>
+
+      <label>
+        Email
+        <input name="email" type="email" value={form.email} onChange={handleChange} required />
+      </label>
+
+      <label>
+        Password
+        <input name="password" type="password" value={form.password} onChange={handleChange} required />
+      </label>
+
+      <button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Logging in...' : 'Login'}
+      </button>
+
+      <p className="muted">
+        New owner? <Link to="/register">Create an account</Link>
+      </p>
+    </form>
+  );
+}
+
+export default LoginPage;
