@@ -83,6 +83,14 @@ public class Owner {
         return email;
     }
 
+    public Restaurant getRestaurant() {
+        return restaurant;
+    }
+
+    public void assignRestaurant(Restaurant restaurant) {
+        this.restaurant = restaurant;
+    }
+
     public String getPasswordHash() {
         return passwordHash;
     }

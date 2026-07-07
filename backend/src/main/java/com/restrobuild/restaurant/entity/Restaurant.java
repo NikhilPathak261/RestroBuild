@@ -61,6 +61,44 @@ public class Restaurant {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    protected Restaurant() {
+    }
+
+    public Restaurant(
+            String name,
+            String description,
+            String address,
+            String phone,
+            String email,
+            String openingHours
+    ) {
+        this.name = name;
+        this.description = description;
+        this.address = address;
+        this.phone = phone;
+        this.email = email;
+        this.openingHours = openingHours;
+        this.primaryColor = "#B42318";
+        this.secondaryColor = "#FFFFFF";
+        this.templateName = "MODERN";
+    }
+
+    public void updateProfile(
+            String name,
+            String description,
+            String address,
+            String phone,
+            String email,
+            String openingHours
+    ) {
+        this.name = name;
+        this.description = description;
+        this.address = address;
+        this.phone = phone;
+        this.email = email;
+        this.openingHours = openingHours;
+    }
+
     @PrePersist
     void prePersist() {
         Instant now = Instant.now();
@@ -75,5 +113,53 @@ public class Restaurant {
 
     public Long getId() {
         return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getOpeningHours() {
+        return openingHours;
+    }
+
+    public String getLogoUrl() {
+        return logoUrl;
+    }
+
+    public String getCoverImageUrl() {
+        return coverImageUrl;
+    }
+
+    public String getPrimaryColor() {
+        return primaryColor;
+    }
+
+    public String getSecondaryColor() {
+        return secondaryColor;
+    }
+
+    public String getTemplateName() {
+        return templateName;
+    }
+
+    public boolean isActive() {
+        return active;
     }
 }

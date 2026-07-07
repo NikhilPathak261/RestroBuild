@@ -5,6 +5,7 @@ import PublicLayout from '../layouts/PublicLayout';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import DashboardPage from '../pages/dashboard/DashboardPage';
+import RestaurantProfilePage from '../pages/dashboard/RestaurantProfilePage';
 import PublicHomePage from '../pages/public/PublicHomePage';
 import NotFoundPage from '../pages/public/NotFoundPage';
 import UnauthorizedPage from '../pages/public/UnauthorizedPage';
@@ -21,6 +22,7 @@ function AppRoutes() {
       <Route element={<ProtectedRoute allowedRoles={['ROLE_OWNER']} />}>
         <Route path="/dashboard" element={<AdminLayout />}>
           <Route index element={<DashboardPage />} />
+          <Route path="profile" element={<RestaurantProfilePage />} />
         </Route>
       </Route>
 
