@@ -51,7 +51,7 @@ function subscribe(destination, onMessage) {
   };
 }
 
-function getWebSocketUrl() {
+export function getWebSocketUrl() {
   if (import.meta.env.VITE_WS_BASE_URL) {
     return import.meta.env.VITE_WS_BASE_URL;
   }
