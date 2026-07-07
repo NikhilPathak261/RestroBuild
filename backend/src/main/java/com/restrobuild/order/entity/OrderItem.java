@@ -56,6 +56,10 @@ public class OrderItem {
         return id;
     }
 
+    public CustomerOrder getOrder() {
+        return order;
+    }
+
     public MenuItem getMenuItem() {
         return menuItem;
     }

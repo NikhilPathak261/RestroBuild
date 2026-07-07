@@ -467,6 +467,37 @@ th {
   margin: 0;
 }
 
+.review-form-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.review-mini-form {
+  border: 1px solid #eaecf0;
+  border-radius: 8px;
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.review-mini-form h3 {
+  margin: 0;
+}
+
+.review-mini-form label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.review-mini-form select,
+.review-mini-form textarea {
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  font: inherit;
+  padding: 0.65rem;
+}
+
 @media (max-width: 900px) {
   .auth-shell,
   .dashboard-shell {
@@ -498,7 +529,8 @@ th {
   .management-grid,
   .management-grid.wide,
   .public-menu-filters,
-  .menu-card-grid {
+  .menu-card-grid,
+  .review-form-grid {
     grid-template-columns: 1fr;
   }
 

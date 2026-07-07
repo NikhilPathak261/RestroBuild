@@ -10,6 +10,7 @@ import DashboardPage from '../pages/dashboard/DashboardPage';
 import MenuManagementPage from '../pages/dashboard/MenuManagementPage';
 import OrdersPage from '../pages/dashboard/OrdersPage';
 import RestaurantProfilePage from '../pages/dashboard/RestaurantProfilePage';
+import ReviewManagementPage from '../pages/dashboard/ReviewManagementPage';
 import StaffManagementPage from '../pages/dashboard/StaffManagementPage';
 import TableManagementPage from '../pages/dashboard/TableManagementPage';
 import WebsiteSettingsPage from '../pages/dashboard/WebsiteSettingsPage';
@@ -40,6 +41,7 @@ function AppRoutes() {
           <Route path="tables" element={<TableManagementPage />} />
           <Route path="orders" element={<OrdersPage />} />
           <Route path="staff" element={<StaffManagementPage />} />
+          <Route path="reviews" element={<ReviewManagementPage />} />
         </Route>
       </Route>
 
