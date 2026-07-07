@@ -15,6 +15,8 @@ import ReviewManagementPage from '../pages/dashboard/ReviewManagementPage';
 import StaffManagementPage from '../pages/dashboard/StaffManagementPage';
 import TableManagementPage from '../pages/dashboard/TableManagementPage';
 import WebsiteSettingsPage from '../pages/dashboard/WebsiteSettingsPage';
+import PublicAboutPage from '../pages/public/PublicAboutPage';
+import PublicContactPage from '../pages/public/PublicContactPage';
 import PublicHomePage from '../pages/public/PublicHomePage';
 import PublicMenuPage from '../pages/public/PublicMenuPage';
 import PublicOrderStatusPage from '../pages/public/PublicOrderStatusPage';
@@ -65,6 +67,8 @@ function AppRoutes() {
 
       <Route path="/r/:restaurantSlug" element={<PublicLayout />}>
         <Route index element={<PublicHomePage />} />
+        <Route path="about" element={<PublicAboutPage />} />
+        <Route path="contact" element={<PublicContactPage />} />
         <Route path="menu" element={<PublicMenuPage />} />
         <Route path="orders/:orderId" element={<PublicOrderStatusPage />} />
       </Route>

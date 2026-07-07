@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import * as orderService from '../../services/orderService';
+import { subscribeToKitchenOrders } from '../../services/realtimeService';
 
 const loaders = {
   PENDING: orderService.getKitchenPendingOrders,
@@ -27,6 +28,10 @@ function KitchenOrdersPage({ status }) {
 
   useEffect(() => {
     loadOrders();
+  }, [loadOrders]);
+
+  useEffect(() => {
+    return subscribeToKitchenOrders(() => loadOrders());
   }, [loadOrders]);
 
   async function runAction(action, successMessage) {

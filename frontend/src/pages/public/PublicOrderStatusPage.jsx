@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { useParams } from 'react-router-dom';
+import { ErrorState, LoadingState } from '../../components/PageState';
 import * as orderService from '../../services/orderService';
 import * as reviewService from '../../services/reviewService';
+import { subscribeToOrder } from '../../services/realtimeService';
 
 function PublicOrderStatusPage() {
   const { orderId } = useParams();
@@ -38,6 +40,12 @@ function PublicOrderStatusPage() {
     };
   }, [orderId]);
 
+  useEffect(() => {
+    return subscribeToOrder(orderId, () => {
+      orderService.getOrder(orderId).then((response) => setOrder(response.data));
+    });
+  }, [orderId]);
+
   function updateReviewForm(orderItemId, field, value) {
     setReviewForms((current) => ({
       ...current,
@@ -66,15 +74,11 @@ function PublicOrderStatusPage() {
   }
 
   if (isLoading) {
-    return <section className="public-home">Loading order...</section>;
+    return <LoadingState label="Loading order..." />;
   }
 
   if (error) {
-    return (
-      <section className="public-home">
-        <h1>{error}</h1>
-      </section>
-    );
+    return <ErrorState title={error} />;
   }
 
   return (

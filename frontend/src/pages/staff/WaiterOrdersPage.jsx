@@ -1,16 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import * as orderService from '../../services/orderService';
+import { subscribeToWaiterOrders } from '../../services/realtimeService';
 
 function WaiterOrdersPage() {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    loadOrders();
-  }, []);
-
-  async function loadOrders() {
+  const loadOrders = useCallback(async () => {
     setIsLoading(true);
 
     try {
@@ -21,7 +18,15 @@ function WaiterOrdersPage() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    loadOrders();
+  }, [loadOrders]);
+
+  useEffect(() => {
+    return subscribeToWaiterOrders(() => loadOrders());
+  }, [loadOrders]);
 
   async function markServed(orderId) {
     try {

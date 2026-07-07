@@ -1,13 +1,13 @@
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { ErrorState, LoadingState } from '../../components/PageState';
 import { usePublicWebsite } from '../../hooks/usePublicWebsite';
 
-function PublicHomePage() {
+function PublicAboutPage() {
   const { restaurantSlug } = useParams();
   const { restaurant, isLoading, error } = usePublicWebsite(restaurantSlug);
 
   if (isLoading) {
-    return <LoadingState label="Loading restaurant website..." />;
+    return <LoadingState label="Loading restaurant details..." />;
   }
 
   if (error) {
@@ -16,21 +16,17 @@ function PublicHomePage() {
 
   return (
     <section
-      className="public-home"
+      className="public-content"
       style={{
         '--primary': restaurant.primaryColor || '#B42318',
         '--secondary': restaurant.secondaryColor || '#FFFFFF',
       }}
     >
-      <p className="eyebrow">Welcome to</p>
+      <p className="eyebrow">About</p>
       <h1>{restaurant.name}</h1>
-      <p>{restaurant.about || restaurant.description}</p>
-      <div className="public-actions">
-        <Link to={`/r/${restaurant.slug}/menu`}>View menu</Link>
-        <Link to={`/r/${restaurant.slug}/contact`}>Contact</Link>
-      </div>
+      <p>{restaurant.about || restaurant.description || 'This restaurant has not added an about section yet.'}</p>
     </section>
   );
 }
 
-export default PublicHomePage;
+export default PublicAboutPage;

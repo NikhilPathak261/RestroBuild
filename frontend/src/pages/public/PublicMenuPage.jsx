@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { ErrorState, LoadingState } from '../../components/PageState';
 import * as categoryService from '../../services/categoryService';
 import * as menuService from '../../services/menuService';
 import * as orderService from '../../services/orderService';
@@ -60,16 +61,11 @@ function PublicMenuPage() {
   }, [restaurantSlug]);
 
   if (isLoading) {
-    return <section className="public-home">Loading menu...</section>;
+    return <LoadingState label="Loading menu..." />;
   }
 
   if (error) {
-    return (
-      <section className="public-home">
-        <h1>{error}</h1>
-        <p>Please ask the restaurant staff for help.</p>
-      </section>
-    );
+    return <ErrorState title={error} message="Please ask the restaurant staff for help." />;
   }
 
   async function handleQuickOrder(item) {

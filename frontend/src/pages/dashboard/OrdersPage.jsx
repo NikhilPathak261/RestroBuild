@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import * as orderService from '../../services/orderService';
+import { subscribeToOwnerOrders } from '../../services/realtimeService';
 
 const statusOptions = ['', 'PENDING', 'PREPARING', 'READY', 'SERVED', 'CANCELLED'];
 
@@ -9,11 +10,7 @@ function OrdersPage() {
   const [status, setStatus] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    loadOrders(status);
-  }, [status]);
-
-  async function loadOrders(nextStatus) {
+  const loadOrders = useCallback(async (nextStatus = status) => {
     setIsLoading(true);
 
     try {
@@ -24,7 +21,15 @@ function OrdersPage() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [status]);
+
+  useEffect(() => {
+    loadOrders(status);
+  }, [loadOrders, status]);
+
+  useEffect(() => {
+    return subscribeToOwnerOrders(() => loadOrders(status));
+  }, [loadOrders, status]);
 
   async function runAction(action, successMessage) {
     try {

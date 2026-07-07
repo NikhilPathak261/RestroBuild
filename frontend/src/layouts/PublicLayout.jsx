@@ -13,7 +13,6 @@ function PublicLayout() {
           <Link to={`${basePath}/menu`}>Menu</Link>
           <Link to={`${basePath}/about`}>About</Link>
           <Link to={`${basePath}/contact`}>Contact</Link>
-          <Link to={`${basePath}/cart`}>Cart</Link>
         </nav>
       </header>
       <Outlet />

@@ -17,6 +17,8 @@ import com.restrobuild.restaurant.entity.Restaurant;
 import com.restrobuild.security.AuthenticatedUserService;
 import com.restrobuild.table.entity.RestaurantTable;
 import com.restrobuild.table.repository.RestaurantTableRepository;
+import com.restrobuild.websocket.dto.OrderEventType;
+import com.restrobuild.websocket.service.OrderEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,19 +33,22 @@ public class OrderService {
     private final MenuItemRepository menuItemRepository;
     private final AuthenticatedUserService authenticatedUserService;
     private final OrderMapper orderMapper;
+    private final OrderEventPublisher orderEventPublisher;
 
     public OrderService(
             CustomerOrderRepository orderRepository,
             RestaurantTableRepository tableRepository,
             MenuItemRepository menuItemRepository,
             AuthenticatedUserService authenticatedUserService,
-            OrderMapper orderMapper
+            OrderMapper orderMapper,
+            OrderEventPublisher orderEventPublisher
     ) {
         this.orderRepository = orderRepository;
         this.tableRepository = tableRepository;
         this.menuItemRepository = menuItemRepository;
         this.authenticatedUserService = authenticatedUserService;
         this.orderMapper = orderMapper;
+        this.orderEventPublisher = orderEventPublisher;
     }
 
     @Transactional
@@ -66,7 +71,9 @@ public class OrderService {
             order.addItem(new OrderItem(menuItem, itemRequest.quantity()));
         }
 
-        return orderMapper.toResponse(orderRepository.save(order));
+        CustomerOrder savedOrder = orderRepository.save(order);
+        orderEventPublisher.publish(savedOrder, OrderEventType.NEW_ORDER);
+        return orderMapper.toResponse(savedOrder);
     }
 
     @Transactional(readOnly = true)
@@ -108,6 +115,7 @@ public class OrderService {
         }
 
         order.cancel();
+        orderEventPublisher.publish(order, OrderEventType.ORDER_CANCELLED);
     }
 
     @Transactional(readOnly = true)
@@ -133,6 +141,7 @@ public class OrderService {
         }
 
         order.markPreparing();
+        orderEventPublisher.publish(order, OrderEventType.ORDER_PREPARING);
         return orderMapper.toResponse(order);
     }
 
@@ -146,6 +155,7 @@ public class OrderService {
         }
 
         order.markReady();
+        orderEventPublisher.publish(order, OrderEventType.ORDER_READY);
         return orderMapper.toResponse(order);
     }
 
@@ -168,6 +178,7 @@ public class OrderService {
         }
 
         order.markServed();
+        orderEventPublisher.publish(order, OrderEventType.ORDER_SERVED);
         return orderMapper.toResponse(order);
     }
 
