@@ -1,16 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import * as categoryService from '../../services/categoryService';
 import * as menuService from '../../services/menuService';
+import * as orderService from '../../services/orderService';
 
 function PublicMenuPage() {
   const { restaurantSlug } = useParams();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [menuItems, setMenuItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [orderingItemId, setOrderingItemId] = useState(null);
   const [error, setError] = useState('');
+  const tableId = searchParams.get('tableId');
 
   const filteredItems = useMemo(() => {
     const keyword = search.trim().toLowerCase();
@@ -66,6 +72,28 @@ function PublicMenuPage() {
     );
   }
 
+  async function handleQuickOrder(item) {
+    if (!tableId) {
+      toast.error('Please scan the table QR code before ordering.');
+      return;
+    }
+
+    setOrderingItemId(item.id);
+
+    try {
+      const response = await orderService.placeOrder({
+        tableId: Number(tableId),
+        items: [{ menuItemId: item.id, quantity: 1 }],
+      });
+      toast.success('Order placed.');
+      navigate(`/r/${restaurantSlug}/orders/${response.data.id}?tableId=${tableId}`);
+    } catch (orderError) {
+      toast.error(orderError.response?.data?.message || 'Failed to place order.');
+    } finally {
+      setOrderingItemId(null);
+    }
+  }
+
   return (
     <section className="public-menu">
       <div>
@@ -102,6 +130,9 @@ function PublicMenuPage() {
                 <h2>{item.name}</h2>
                 <p>{item.description}</p>
                 <strong>₹{item.price}</strong>
+                <button type="button" onClick={() => handleQuickOrder(item)} disabled={orderingItemId === item.id}>
+                  {orderingItemId === item.id ? 'Ordering...' : 'Order 1'}
+                </button>
               </div>
             </article>
           ))}
