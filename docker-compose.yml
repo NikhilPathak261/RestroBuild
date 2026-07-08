@@ -28,6 +28,9 @@ services:
       JPA_DDL_AUTO: ${JPA_DDL_AUTO:-update}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-default}
       JAVA_OPTS: ${JAVA_OPTS:-}
+      LOG_LEVEL_ROOT: ${LOG_LEVEL_ROOT:-INFO}
+      LOG_LEVEL_APP: ${LOG_LEVEL_APP:-INFO}
+      LOG_LEVEL_SECURITY: ${LOG_LEVEL_SECURITY:-WARN}
     depends_on:
       postgres:
         condition: service_healthy

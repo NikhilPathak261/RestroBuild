@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import * as restaurantService from '../../services/restaurantService';
+import { getApiErrorMessage } from '../../utils/apiError';
 
 const emptyForm = {
   name: '',
@@ -39,7 +40,7 @@ function RestaurantProfilePage() {
         });
       } catch (error) {
         if (error.response?.status !== 404) {
-          toast.error(error.response?.data?.message || 'Failed to load restaurant profile.');
+          toast.error(getApiErrorMessage(error, 'Failed to load restaurant profile.'));
         }
       } finally {
         if (isMounted) {
@@ -71,7 +72,7 @@ function RestaurantProfilePage() {
       setRestaurantId(response.id);
       toast.success(restaurantId ? 'Restaurant updated.' : 'Restaurant created.');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to save restaurant profile.');
+      toast.error(getApiErrorMessage(error, 'Failed to save restaurant profile.'));
     } finally {
       setIsSubmitting(false);
     }

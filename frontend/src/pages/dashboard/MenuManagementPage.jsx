@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import * as categoryService from '../../services/categoryService';
 import * as menuService from '../../services/menuService';
+import { getApiErrorMessage } from '../../utils/apiError';
 
 const emptyForm = {
   categoryId: '',
@@ -49,7 +50,7 @@ function MenuManagementPage() {
       setCategories(categoryResponse);
       setMenuItems(menuResponse);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to load menu data.');
+      toast.error(getApiErrorMessage(error, 'Failed to load menu data.'));
     } finally {
       setIsLoading(false);
     }
@@ -117,7 +118,7 @@ function MenuManagementPage() {
       resetForm();
       await loadPageData();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to save menu item.');
+      toast.error(getApiErrorMessage(error, 'Failed to save menu item.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -135,7 +136,7 @@ function MenuManagementPage() {
 
       await loadPageData();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update visibility.');
+      toast.error(getApiErrorMessage(error, 'Failed to update visibility.'));
     }
   }
 
@@ -145,7 +146,7 @@ function MenuManagementPage() {
       toast.success('Availability updated.');
       await loadPageData();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update availability.');
+      toast.error(getApiErrorMessage(error, 'Failed to update availability.'));
     }
   }
 
@@ -160,7 +161,7 @@ function MenuManagementPage() {
       toast.success('Menu item deleted.');
       await loadPageData();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to delete menu item.');
+      toast.error(getApiErrorMessage(error, 'Failed to delete menu item.'));
     }
   }
 

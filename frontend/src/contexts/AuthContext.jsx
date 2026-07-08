@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { STORAGE_KEYS } from '../constants/storageKeys';
 import * as authService from '../services/authService';
+import { AUTH_EXPIRED_EVENT, clearAuthSession, storeAuthSession } from '../utils/authSession';
 import AuthContext from './AuthContext';
 
 export function AuthProvider({ children }) {
@@ -13,9 +14,7 @@ export function AuthProvider({ children }) {
     const response = await authService.login(credentials);
     const auth = response.data;
 
-    localStorage.setItem(STORAGE_KEYS.accessToken, auth.accessToken);
-    localStorage.setItem(STORAGE_KEYS.refreshToken, auth.refreshToken);
-    localStorage.setItem(STORAGE_KEYS.role, auth.role);
+    storeAuthSession(auth);
 
     setAccessToken(auth.accessToken);
     setRole(auth.role);
@@ -24,12 +23,23 @@ export function AuthProvider({ children }) {
   }
 
   function signOut() {
-    localStorage.removeItem(STORAGE_KEYS.accessToken);
-    localStorage.removeItem(STORAGE_KEYS.refreshToken);
-    localStorage.removeItem(STORAGE_KEYS.role);
+    clearAuthSession();
     setAccessToken(null);
     setRole(null);
   }
+
+  useEffect(() => {
+    function handleAuthExpired() {
+      setAccessToken(null);
+      setRole(null);
+    }
+
+    window.addEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+
+    return () => {
+      window.removeEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+    };
+  }, []);
 
   const value = useMemo(
     () => ({

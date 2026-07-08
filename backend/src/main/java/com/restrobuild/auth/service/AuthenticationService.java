@@ -123,7 +123,7 @@ public class AuthenticationService {
             throw new BadCredentialsException("Invalid refresh token.");
         }
 
-        if (!jwtService.isTokenValid(refreshToken, User
+        if (!jwtService.isRefreshTokenValid(refreshToken, User
                 .withUsername(email)
                 .password(passwordHash)
                 .authorities(role)

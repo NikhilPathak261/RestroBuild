@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import * as reviewService from '../../services/reviewService';
+import { getApiErrorMessage } from '../../utils/apiError';
 
 function ReviewManagementPage() {
   const [reviews, setReviews] = useState([]);
@@ -14,7 +15,7 @@ function ReviewManagementPage() {
       const response = await reviewService.getReviews(rating ? { rating } : {});
       setReviews(response);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to load reviews.');
+      toast.error(getApiErrorMessage(error, 'Failed to load reviews.'));
     } finally {
       setIsLoading(false);
     }
@@ -30,7 +31,7 @@ function ReviewManagementPage() {
       toast.success(successMessage);
       await loadReviews();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update review.');
+      toast.error(getApiErrorMessage(error, 'Failed to update review.'));
     }
   }
 

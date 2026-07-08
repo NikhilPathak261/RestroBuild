@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { registerOwner } from '../../services/authService';
+import { getApiErrorMessage } from '../../utils/apiError';
 
 function RegisterPage() {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ function RegisterPage() {
       toast.success('Registration successful. Please login.');
       navigate('/login', { replace: true });
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Registration failed.');
+      toast.error(getApiErrorMessage(error, 'Registration failed.'));
     } finally {
       setIsSubmitting(false);
     }

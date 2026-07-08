@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import * as tableService from '../../services/tableService';
+import { getApiErrorMessage } from '../../utils/apiError';
 
 function TableManagementPage() {
   const [tables, setTables] = useState([]);
@@ -21,7 +22,7 @@ function TableManagementPage() {
       const response = await tableService.getTables();
       setTables(response);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to load tables.');
+      toast.error(getApiErrorMessage(error, 'Failed to load tables.'));
     } finally {
       setIsLoading(false);
     }
@@ -37,7 +38,7 @@ function TableManagementPage() {
       setNumberOfTables(1);
       await loadTables();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to create tables.');
+      toast.error(getApiErrorMessage(error, 'Failed to create tables.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -63,7 +64,7 @@ function TableManagementPage() {
       cancelEdit();
       await loadTables();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update table.');
+      toast.error(getApiErrorMessage(error, 'Failed to update table.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -80,7 +81,7 @@ function TableManagementPage() {
       toast.success('Table deleted.');
       await loadTables();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to delete table.');
+      toast.error(getApiErrorMessage(error, 'Failed to delete table.'));
     }
   }
 
@@ -90,7 +91,7 @@ function TableManagementPage() {
       toast.success('QR links generated.');
       await loadTables();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to generate QR links.');
+      toast.error(getApiErrorMessage(error, 'Failed to generate QR links.'));
     }
   }
 
@@ -100,7 +101,7 @@ function TableManagementPage() {
       toast.success('QR link regenerated.');
       await loadTables();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to regenerate QR link.');
+      toast.error(getApiErrorMessage(error, 'Failed to regenerate QR link.'));
     }
   }
 

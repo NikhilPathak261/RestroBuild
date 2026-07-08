@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import * as orderService from '../../services/orderService';
 import { subscribeToKitchenOrders } from '../../services/realtimeService';
+import { getApiErrorMessage } from '../../utils/apiError';
 
 const loaders = {
   PENDING: orderService.getKitchenPendingOrders,
@@ -20,7 +21,7 @@ function KitchenOrdersPage({ status }) {
       const response = await loaders[status]();
       setOrders(response);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to load kitchen orders.');
+      toast.error(getApiErrorMessage(error, 'Failed to load kitchen orders.'));
     } finally {
       setIsLoading(false);
     }
@@ -40,7 +41,7 @@ function KitchenOrdersPage({ status }) {
       toast.success(successMessage);
       await loadOrders();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update order.');
+      toast.error(getApiErrorMessage(error, 'Failed to update order.'));
     }
   }
 

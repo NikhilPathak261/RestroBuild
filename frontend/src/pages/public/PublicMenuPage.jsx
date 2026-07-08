@@ -5,6 +5,7 @@ import { ErrorState, LoadingState } from '../../components/PageState';
 import * as categoryService from '../../services/categoryService';
 import * as menuService from '../../services/menuService';
 import * as orderService from '../../services/orderService';
+import { getApiErrorMessage } from '../../utils/apiError';
 
 function PublicMenuPage() {
   const { restaurantSlug } = useParams();
@@ -84,7 +85,7 @@ function PublicMenuPage() {
       toast.success('Order placed.');
       navigate(`/r/${restaurantSlug}/orders/${response.id}?tableId=${tableId}`);
     } catch (orderError) {
-      toast.error(orderError.response?.data?.message || 'Failed to place order.');
+      toast.error(getApiErrorMessage(orderError, 'Failed to place order.'));
     } finally {
       setOrderingItemId(null);
     }

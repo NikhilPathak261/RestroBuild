@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import * as analyticsService from '../../services/analyticsService';
+import { getApiErrorMessage } from '../../utils/apiError';
 
 function AnalyticsPage() {
   const [summary, setSummary] = useState(null);
@@ -30,7 +31,7 @@ function AnalyticsPage() {
         setCategoryStats(categoryResponse);
         setRatings(ratingsResponse);
       } catch (error) {
-        toast.error(error.response?.data?.message || 'Failed to load analytics.');
+        toast.error(getApiErrorMessage(error, 'Failed to load analytics.'));
       } finally {
         setIsLoading(false);
       }

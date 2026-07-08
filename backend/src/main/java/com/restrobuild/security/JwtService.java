@@ -15,6 +15,10 @@ import java.util.Date;
 @Service
 public class JwtService {
 
+    private static final String TOKEN_TYPE_CLAIM = "tokenType";
+    private static final String ACCESS_TOKEN_TYPE = "access";
+    private static final String REFRESH_TOKEN_TYPE = "refresh";
+
     private final SecretKey secretKey;
     private final long accessTokenExpirationMs;
     private final long refreshTokenExpirationMs;
@@ -30,11 +34,11 @@ public class JwtService {
     }
 
     public String generateAccessToken(String subject, String role) {
-        return generateToken(subject, role, accessTokenExpirationMs);
+        return generateToken(subject, role, ACCESS_TOKEN_TYPE, accessTokenExpirationMs);
     }
 
     public String generateRefreshToken(String subject, String role) {
-        return generateToken(subject, role, refreshTokenExpirationMs);
+        return generateToken(subject, role, REFRESH_TOKEN_TYPE, refreshTokenExpirationMs);
     }
 
     public String extractSubject(String token) {
@@ -45,20 +49,35 @@ public class JwtService {
         return extractAllClaims(token).get("role", String.class);
     }
 
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        String subject = extractSubject(token);
-        return subject.equals(userDetails.getUsername()) && !isExpired(token);
+    public boolean isAccessTokenValid(String token, UserDetails userDetails) {
+        return isTokenValid(token, userDetails, ACCESS_TOKEN_TYPE);
     }
 
-    private String generateToken(String subject, String role, long expirationMs) {
+    public boolean isRefreshTokenValid(String token, UserDetails userDetails) {
+        return isTokenValid(token, userDetails, REFRESH_TOKEN_TYPE);
+    }
+
+    private boolean isTokenValid(String token, UserDetails userDetails, String expectedTokenType) {
+        String subject = extractSubject(token);
+        return subject.equals(userDetails.getUsername())
+                && expectedTokenType.equals(extractTokenType(token))
+                && !isExpired(token);
+    }
+
+    private String generateToken(String subject, String role, String tokenType, long expirationMs) {
         Instant now = Instant.now();
         return Jwts.builder()
                 .subject(subject)
                 .claim("role", role)
+                .claim(TOKEN_TYPE_CLAIM, tokenType)
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plusMillis(expirationMs)))
                 .signWith(secretKey)
                 .compact();
+    }
+
+    private String extractTokenType(String token) {
+        return extractAllClaims(token).get(TOKEN_TYPE_CLAIM, String.class);
     }
 
     private boolean isExpired(String token) {

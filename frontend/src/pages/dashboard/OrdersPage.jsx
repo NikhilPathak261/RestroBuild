@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import * as orderService from '../../services/orderService';
 import { subscribeToOwnerOrders } from '../../services/realtimeService';
+import { getApiErrorMessage } from '../../utils/apiError';
 
 const statusOptions = ['', 'PENDING', 'PREPARING', 'READY', 'SERVED', 'CANCELLED'];
 
@@ -17,7 +18,7 @@ function OrdersPage() {
       const response = await orderService.getRestaurantOrders(nextStatus);
       setOrders(response);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to load orders.');
+      toast.error(getApiErrorMessage(error, 'Failed to load orders.'));
     } finally {
       setIsLoading(false);
     }
@@ -37,7 +38,7 @@ function OrdersPage() {
       toast.success(successMessage);
       await loadOrders(status);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update order.');
+      toast.error(getApiErrorMessage(error, 'Failed to update order.'));
     }
   }
 

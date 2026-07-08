@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import * as orderService from '../../services/orderService';
 import { subscribeToWaiterOrders } from '../../services/realtimeService';
+import { getApiErrorMessage } from '../../utils/apiError';
 
 function WaiterOrdersPage() {
   const [orders, setOrders] = useState([]);
@@ -14,7 +15,7 @@ function WaiterOrdersPage() {
       const response = await orderService.getWaiterReadyOrders();
       setOrders(response);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to load waiter orders.');
+      toast.error(getApiErrorMessage(error, 'Failed to load waiter orders.'));
     } finally {
       setIsLoading(false);
     }
@@ -34,7 +35,7 @@ function WaiterOrdersPage() {
       toast.success('Order marked served.');
       await loadOrders();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to mark served.');
+      toast.error(getApiErrorMessage(error, 'Failed to mark served.'));
     }
   }
 

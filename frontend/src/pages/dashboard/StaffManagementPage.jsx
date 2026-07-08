@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import * as staffService from '../../services/staffService';
+import { getApiErrorMessage } from '../../utils/apiError';
 
 const emptyForm = {
   name: '',
@@ -27,7 +28,7 @@ function StaffManagementPage() {
       const response = await staffService.getStaff();
       setStaff(response);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to load staff.');
+      toast.error(getApiErrorMessage(error, 'Failed to load staff.'));
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +73,7 @@ function StaffManagementPage() {
       resetForm();
       await loadStaff();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to save staff member.');
+      toast.error(getApiErrorMessage(error, 'Failed to save staff member.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -84,7 +85,7 @@ function StaffManagementPage() {
       toast.success(successMessage);
       await loadStaff();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update staff member.');
+      toast.error(getApiErrorMessage(error, 'Failed to update staff member.'));
     }
   }
 

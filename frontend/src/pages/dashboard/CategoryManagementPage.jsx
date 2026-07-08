@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import * as categoryService from '../../services/categoryService';
+import { getApiErrorMessage } from '../../utils/apiError';
 
 const emptyForm = {
   name: '',
@@ -35,7 +36,7 @@ function CategoryManagementPage() {
       const response = await categoryService.getCategories();
       setCategories(response);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to load categories.');
+      toast.error(getApiErrorMessage(error, 'Failed to load categories.'));
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +79,7 @@ function CategoryManagementPage() {
       resetForm();
       await loadCategories();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to save category.');
+      toast.error(getApiErrorMessage(error, 'Failed to save category.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -95,7 +96,7 @@ function CategoryManagementPage() {
       toast.success('Category deleted.');
       await loadCategories();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to delete category.');
+      toast.error(getApiErrorMessage(error, 'Failed to delete category.'));
     }
   }
 

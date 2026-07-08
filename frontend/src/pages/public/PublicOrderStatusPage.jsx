@@ -5,6 +5,7 @@ import { ErrorState, LoadingState } from '../../components/PageState';
 import * as orderService from '../../services/orderService';
 import * as reviewService from '../../services/reviewService';
 import { subscribeToOrder } from '../../services/realtimeService';
+import { getApiErrorMessage } from '../../utils/apiError';
 
 function PublicOrderStatusPage() {
   const { orderId } = useParams();
@@ -69,7 +70,7 @@ function PublicOrderStatusPage() {
       });
       toast.success('Review submitted.');
     } catch (reviewError) {
-      toast.error(reviewError.response?.data?.message || 'Failed to submit review.');
+      toast.error(getApiErrorMessage(reviewError, 'Failed to submit review.'));
     }
   }
 

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../hooks/useAuth';
+import { getApiErrorMessage } from '../../utils/apiError';
 
 function LoginPage() {
   const { signIn } = useAuth();
@@ -28,7 +29,7 @@ function LoginPage() {
         navigate('/dashboard', { replace: true });
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Login failed.');
+      toast.error(getApiErrorMessage(error, 'Login failed.'));
     } finally {
       setIsSubmitting(false);
     }

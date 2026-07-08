@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import * as websiteService from '../../services/websiteService';
+import { getApiErrorMessage } from '../../utils/apiError';
 
 const defaultTheme = {
   template: 'MODERN',
@@ -39,7 +40,7 @@ function WebsiteSettingsPage() {
         setSlug(settings.slug || '');
         setPublished(Boolean(settings.published));
       } catch (error) {
-        toast.error(error.response?.data?.message || 'Create a restaurant profile before editing the website.');
+        toast.error(getApiErrorMessage(error, 'Create a restaurant profile before editing the website.'));
       } finally {
         if (isMounted) {
           setIsLoading(false);
@@ -71,7 +72,7 @@ function WebsiteSettingsPage() {
       });
       toast.success('Website theme updated.');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update theme.');
+      toast.error(getApiErrorMessage(error, 'Failed to update theme.'));
     } finally {
       setIsSavingTheme(false);
     }
@@ -85,7 +86,7 @@ function WebsiteSettingsPage() {
       await websiteService.updateAbout({ about });
       toast.success('About section updated.');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update about section.');
+      toast.error(getApiErrorMessage(error, 'Failed to update about section.'));
     } finally {
       setIsSavingAbout(false);
     }
@@ -100,7 +101,7 @@ function WebsiteSettingsPage() {
       setPublishedUrl(response.websiteUrl);
       toast.success('Website published.');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to publish website.');
+      toast.error(getApiErrorMessage(error, 'Failed to publish website.'));
     } finally {
       setIsPublishing(false);
     }

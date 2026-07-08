@@ -202,6 +202,7 @@ Important production variables:
 - `SPRING_PROFILES_ACTIVE`: use `prod` for production deployments.
 - `JPA_DDL_AUTO`: use `validate` or managed migrations for production once schema migration tooling is added.
 - `JAVA_OPTS`: optional JVM flags for the backend container, such as memory limits.
+- `LOG_LEVEL_ROOT`, `LOG_LEVEL_APP`, `LOG_LEVEL_SECURITY`: optional backend log level controls.
 
 When the backend runs with the `prod` profile, it fails fast if the development JWT secret or wildcard CORS origins are still configured and disables Swagger/OpenAPI by default.
 
