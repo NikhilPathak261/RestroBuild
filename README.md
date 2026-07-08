@@ -90,7 +90,7 @@ It enables restaurant owners to create their own branded restaurant website with
 
 ## Containerization
 
-- Docker (Planned)
+- Docker
 
 ---
 
@@ -167,6 +167,38 @@ Frontend runs on
 ```
 http://localhost:5173
 ```
+
+---
+
+# Docker Deployment
+
+Copy the example environment file and adjust secrets/URLs for your machine or host:
+
+```bash
+cp .env.example .env
+```
+
+Start the full stack:
+
+```bash
+docker compose up --build
+```
+
+Default local URLs:
+
+- Frontend: `http://localhost:5173`
+- Backend API: `http://localhost:8080/api`
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- Backend health: `http://localhost:8080/api/health`
+
+Important production variables:
+
+- `JWT_SECRET`: replace the development value with a strong secret.
+- `CORS_ALLOWED_ORIGINS`: set to the deployed frontend origin.
+- `FRONTEND_BASE_URL`: set to the deployed frontend URL used in QR/public links.
+- `VITE_API_BASE_URL`: set to the public backend API URL at frontend build time.
+- `VITE_WS_BASE_URL`: set to the public WebSocket URL at frontend build time.
+- `JPA_DDL_AUTO`: use `validate` or managed migrations for production once schema migration tooling is added.
 
 ---
 
