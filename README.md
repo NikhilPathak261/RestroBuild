@@ -189,7 +189,8 @@ Default local URLs:
 - Frontend: `http://localhost:5173`
 - Backend API: `http://localhost:8080/api`
 - Swagger UI: `http://localhost:8080/swagger-ui.html`
-- Backend health: `http://localhost:8080/api/health`
+- Backend liveness: `http://localhost:8080/api/health`
+- Backend readiness: `http://localhost:8080/api/health/ready`
 
 Important production variables:
 
@@ -198,7 +199,11 @@ Important production variables:
 - `FRONTEND_BASE_URL`: set to the deployed frontend URL used in QR/public links.
 - `VITE_API_BASE_URL`: set to the public backend API URL at frontend build time.
 - `VITE_WS_BASE_URL`: set to the public WebSocket URL at frontend build time.
+- `SPRING_PROFILES_ACTIVE`: use `prod` for production deployments.
 - `JPA_DDL_AUTO`: use `validate` or managed migrations for production once schema migration tooling is added.
+- `JAVA_OPTS`: optional JVM flags for the backend container, such as memory limits.
+
+When the backend runs with the `prod` profile, it fails fast if the development JWT secret or wildcard CORS origins are still configured and disables Swagger/OpenAPI by default.
 
 ---
 
