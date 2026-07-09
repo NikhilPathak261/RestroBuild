@@ -81,7 +81,7 @@ public class AuthenticationService {
     }
 
     private AuthResponse loginOwner(Owner owner, String password) {
-        if (!passwordEncoder.matches(password, owner.getPasswordHash())) {
+        if (!owner.isActive() || !passwordEncoder.matches(password, owner.getPasswordHash())) {
             throw new BadCredentialsException("Invalid email or password.");
         }
 

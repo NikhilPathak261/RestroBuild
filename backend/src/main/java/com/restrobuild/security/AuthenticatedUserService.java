@@ -5,6 +5,8 @@ import com.restrobuild.auth.repository.OwnerRepository;
 import com.restrobuild.exception.ResourceNotFoundException;
 import com.restrobuild.restaurant.entity.Restaurant;
 import com.restrobuild.staff.repository.StaffRepository;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -21,11 +23,10 @@ public class AuthenticatedUserService {
     }
 
     public Owner getAuthenticatedOwner() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+        String email = getAuthenticationEmail();
 
         return ownerRepository.findByEmailIgnoreCase(email)
-                .orElseThrow(() -> new IllegalStateException("Authenticated owner not found."));
+                .orElseThrow(() -> new AccessDeniedException("Authenticated owner required."));
     }
 
     public Restaurant getAuthenticatedOwnerRestaurant() {
@@ -40,6 +41,11 @@ public class AuthenticatedUserService {
 
     private String getAuthenticationEmail() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getName() == null
+                || authentication.getName().isBlank()) {
+            throw new AuthenticationCredentialsNotFoundException("Authentication required.");
+        }
+
         return authentication.getName();
     }
 }
