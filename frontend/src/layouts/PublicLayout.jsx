@@ -1,18 +1,21 @@
-import { Link, Outlet, useParams } from 'react-router-dom';
+import { Link, Outlet, useParams, useSearchParams } from 'react-router-dom';
 
 function PublicLayout() {
   const { restaurantSlug } = useParams();
+  const [searchParams] = useSearchParams();
   const basePath = `/r/${restaurantSlug}`;
+  const tableId = searchParams.get('tableId');
+  const tableQuery = tableId ? `?tableId=${tableId}` : '';
 
   return (
     <main className="public-shell">
       <header className="public-header">
-        <Link className="brand" to={basePath}>RestroBuild</Link>
+        <Link className="brand" to={`${basePath}${tableQuery}`}>RestroBuild</Link>
         <nav>
-          <Link to={basePath}>Home</Link>
-          <Link to={`${basePath}/menu`}>Menu</Link>
-          <Link to={`${basePath}/about`}>About</Link>
-          <Link to={`${basePath}/contact`}>Contact</Link>
+          <Link to={`${basePath}${tableQuery}`}>Home</Link>
+          <Link to={`${basePath}/menu${tableQuery}`}>Menu</Link>
+          <Link to={`${basePath}/about${tableQuery}`}>About</Link>
+          <Link to={`${basePath}/contact${tableQuery}`}>Contact</Link>
         </nav>
       </header>
       <Outlet />

@@ -29,3 +29,8 @@ export async function regenerateQr(tableId) {
   const response = await apiClient.post(`/qr/regenerate/${tableId}`);
   return response.data;
 }
+
+export async function validateQr(tableId) {
+  const response = await apiClient.get(`/public/qr/${tableId}`);
+  return response.data;
+}
