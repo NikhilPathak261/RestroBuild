@@ -8,6 +8,7 @@ function PublicBillPage() {
   const { orderId, restaurantSlug } = useParams();
   const [searchParams] = useSearchParams();
   const [order, setOrder] = useState(null);
+  const [orderStatus, setOrderStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const tableId = searchParams.get('tableId');
@@ -17,9 +18,13 @@ function PublicBillPage() {
 
     async function loadOrder() {
       try {
-        const response = await orderService.getOrder(orderId);
+        const [orderResponse, statusResponse] = await Promise.all([
+          orderService.getOrder(orderId),
+          orderService.getOrderStatus(orderId),
+        ]);
         if (isMounted) {
-          setOrder(response);
+          setOrder(orderResponse);
+          setOrderStatus(statusResponse);
         }
       } catch {
         if (isMounted) {
@@ -41,7 +46,13 @@ function PublicBillPage() {
 
   useEffect(() => {
     return subscribeToOrder(orderId, () => {
-      orderService.getOrder(orderId).then((response) => setOrder(response));
+      Promise.all([
+        orderService.getOrder(orderId),
+        orderService.getOrderStatus(orderId),
+      ]).then(([orderResponse, statusResponse]) => {
+        setOrder(orderResponse);
+        setOrderStatus(statusResponse);
+      });
     });
   }, [orderId]);
 
@@ -54,15 +65,37 @@ function PublicBillPage() {
   }
 
   const orderPath = tableId ? `/r/${restaurantSlug}/orders/${order.id}?tableId=${tableId}` : `/r/${restaurantSlug}/orders/${order.id}`;
+  const menuPath = tableId ? `/r/${restaurantSlug}/menu?tableId=${tableId}` : `/r/${restaurantSlug}/menu`;
   const subtotal = order.items.reduce((total, item) => total + Number(item.subtotal), 0);
+  const itemCount = order.items.reduce((total, item) => total + Number(item.quantity), 0);
+  const currentStatus = orderStatus?.status || order.status;
+  const canAddMoreItems = ['PENDING', 'PREPARING', 'READY'].includes(currentStatus);
 
   return (
     <section className="public-menu">
       <div>
         <p className="eyebrow">Bill Summary</p>
         <h1>Order #{order.id}</h1>
-        <p>Table {order.tableNumber} - {order.status}</p>
+        <p>Table {order.tableNumber} - {formatOrderStatus(currentStatus)}</p>
       </div>
+
+      <section className="list-panel bill-summary-grid">
+        <article>
+          <span>Status</span>
+          <strong>{formatOrderStatus(currentStatus)}</strong>
+          <p>{getBillStatusMessage(currentStatus)}</p>
+        </article>
+        <article>
+          <span>Estimated time</span>
+          <strong>{getEstimatedTimeLabel(orderStatus?.estimatedTime, currentStatus)}</strong>
+          <p>Kitchen timing updates as the order moves.</p>
+        </article>
+        <article>
+          <span>Items</span>
+          <strong>{itemCount}</strong>
+          <p>{order.items.length} dish{order.items.length === 1 ? '' : 'es'} on this bill.</p>
+        </article>
+      </section>
 
       <section className="list-panel">
         <div className="responsive-table">
@@ -101,9 +134,45 @@ function PublicBillPage() {
         </div>
       </section>
 
-      <Link className="ghost-button" to={orderPath}>Back to order status</Link>
+      <div className="button-row">
+        <Link className="ghost-button" to={orderPath}>Back to order status</Link>
+        {canAddMoreItems && <Link className="ghost-button" to={menuPath}>Add more items</Link>}
+        <button className="ghost-button" type="button" onClick={() => window.print()}>Print bill</button>
+      </div>
     </section>
   );
+}
+
+function getEstimatedTimeLabel(estimatedTime, status) {
+  if (status === 'SERVED') {
+    return 'Served';
+  }
+
+  if (status === 'CANCELLED') {
+    return 'Cancelled';
+  }
+
+  if (!estimatedTime) {
+    return 'Updating';
+  }
+
+  return `${estimatedTime} min`;
+}
+
+function getBillStatusMessage(status) {
+  if (status === 'SERVED') {
+    return 'Ready for final payment with restaurant staff.';
+  }
+
+  if (status === 'CANCELLED') {
+    return 'This order was cancelled.';
+  }
+
+  return 'This bill may update until the order is served.';
+}
+
+function formatOrderStatus(status) {
+  return status.toLowerCase().replaceAll('_', ' ');
 }
 
 export default PublicBillPage;

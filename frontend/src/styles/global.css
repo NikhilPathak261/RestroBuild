@@ -391,6 +391,45 @@ th {
   margin: 0;
 }
 
+.public-home {
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.public-home-content {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+}
+
+.public-brand-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.public-logo {
+  border: 1px solid #eaecf0;
+  border-radius: 8px;
+  height: 88px;
+  object-fit: cover;
+  width: 88px;
+}
+
+.public-cover {
+  aspect-ratio: 16 / 7;
+  border-radius: 8px;
+  max-height: 320px;
+  object-fit: cover;
+  width: 100%;
+}
+
+.public-cover.compact {
+  aspect-ratio: 16 / 8;
+  max-width: 760px;
+}
+
 .public-content {
   gap: 1rem;
   place-content: start center;
@@ -592,6 +631,192 @@ th {
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
+.active-order-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.active-order-card {
+  border: 1px solid #eaecf0;
+  border-radius: 8px;
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.active-order-card h3,
+.active-order-card p {
+  margin: 0;
+}
+
+.order-status-pill {
+  background: #fff1f0;
+  border-radius: 999px;
+  color: #b42318;
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 800;
+  margin-bottom: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  text-transform: capitalize;
+}
+
+.order-tracker-summary {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.order-tracker-summary h2,
+.order-tracker-summary span {
+  margin: 0;
+}
+
+.order-tracker-summary > div:last-child {
+  text-align: right;
+}
+
+.order-tracker-summary > div:last-child span {
+  color: #667085;
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.order-tracker-summary > div:last-child strong {
+  color: #111827;
+  font-size: 1.4rem;
+}
+
+.order-timeline {
+  counter-reset: order-step;
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+
+.order-timeline li {
+  border-left: 4px solid #eaecf0;
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.25rem 0 0.25rem 1rem;
+}
+
+.order-timeline li.completed {
+  border-left-color: #12b76a;
+}
+
+.order-timeline li.current {
+  border-left-color: #b42318;
+}
+
+.order-timeline li.upcoming {
+  color: #667085;
+}
+
+.order-timeline span {
+  font-weight: 800;
+}
+
+.order-timeline strong {
+  font-weight: 500;
+}
+
+.bill-summary-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.bill-summary-grid article {
+  border: 1px solid #eaecf0;
+  border-radius: 8px;
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem;
+}
+
+.bill-summary-grid span {
+  color: #667085;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.bill-summary-grid strong {
+  color: #111827;
+  font-size: 1.5rem;
+  text-transform: capitalize;
+}
+
+.bill-summary-grid p {
+  margin: 0;
+}
+
+.qr-preview {
+  border: 1px solid #eaecf0;
+  border-radius: 8px;
+  height: 88px;
+  object-fit: contain;
+  padding: 0.35rem;
+  width: 88px;
+}
+
+.compact-list {
+  gap: 0.35rem;
+}
+
+.compact-list div,
+.compact-list a {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.image-preview-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.image-preview-grid article {
+  border: 1px solid #eaecf0;
+  border-radius: 8px;
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem;
+}
+
+.image-preview-grid span {
+  color: #667085;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.image-preview-grid img {
+  aspect-ratio: 16 / 9;
+  border-radius: 6px;
+  object-fit: cover;
+  width: 100%;
+}
+
+.table-media-cell {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.table-media-cell img {
+  border-radius: 6px;
+  height: 44px;
+  object-fit: cover;
+  width: 44px;
+}
+
 @media (max-width: 900px) {
   .auth-shell,
   .dashboard-shell {
@@ -626,9 +851,15 @@ th {
   .public-menu-filters,
   .dish-detail-grid,
   .menu-card-grid,
+  .active-order-grid,
+  .bill-summary-grid,
   .review-form-grid,
   .analytics-grid,
   .rating-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .image-preview-grid {
     grid-template-columns: 1fr;
   }
 

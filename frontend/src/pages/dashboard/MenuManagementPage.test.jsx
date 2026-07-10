@@ -44,6 +44,8 @@ describe('MenuManagementPage', () => {
     fireEvent.change(screen.getByLabelText('Description'), { target: { value: 'Loaded with vegetables' } });
     fireEvent.change(screen.getByLabelText('Price'), { target: { value: '349.50' } });
     fireEvent.change(screen.getByLabelText('Preparation time'), { target: { value: '18' } });
+    fireEvent.change(screen.getByLabelText('Image URL'), { target: { value: 'https://example.com/pizza.jpg' } });
+    expect(screen.getByRole('img', { name: 'Dish preview' })).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Spicy level'), { target: { value: '2' } });
     fireEvent.change(screen.getByLabelText('Sweet level'), { target: { value: '0' } });
     fireEvent.click(screen.getByRole('button', { name: 'Create dish' }));
@@ -54,7 +56,7 @@ describe('MenuManagementPage', () => {
         name: 'Farmhouse Pizza',
         description: 'Loaded with vegetables',
         price: 349.5,
-        imageUrl: '',
+        imageUrl: 'https://example.com/pizza.jpg',
         foodType: 'VEG',
         spicyLevel: 2,
         sweetLevel: 0,
@@ -63,5 +65,32 @@ describe('MenuManagementPage', () => {
       });
     });
     expect(toast.success).toHaveBeenCalledWith('Menu item created.');
+  });
+
+  it('shows dish thumbnails in the menu list', async () => {
+    menuService.getMenuItems.mockResolvedValue([
+      {
+        id: 9,
+        categoryId: 4,
+        categoryName: 'Pizza',
+        name: 'Farmhouse Pizza',
+        description: 'Loaded with vegetables',
+        price: 349.5,
+        imageUrl: 'https://example.com/pizza.jpg',
+        foodType: 'VEG',
+        spicyLevel: 2,
+        sweetLevel: 0,
+        preparationTime: 18,
+        available: true,
+        hidden: false,
+      },
+    ]);
+
+    render(<MenuManagementPage />);
+
+    expect(await screen.findByRole('img', { name: 'Farmhouse Pizza' })).toHaveAttribute(
+      'src',
+      'https://example.com/pizza.jpg',
+    );
   });
 });

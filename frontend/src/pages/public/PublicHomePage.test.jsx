@@ -31,6 +31,8 @@ describe('PublicHomePage', () => {
         name: 'Spice House',
         slug: 'spice-house',
         about: 'Fresh food daily.',
+        logoUrl: 'https://example.com/spice-logo.png',
+        coverImageUrl: 'https://example.com/spice-cover.jpg',
         primaryColor: '#B42318',
         secondaryColor: '#FFFFFF',
       },
@@ -48,6 +50,14 @@ describe('PublicHomePage', () => {
     renderHome();
 
     expect(await screen.findByText('Table 12')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Spice House logo' })).toHaveAttribute(
+      'src',
+      'https://example.com/spice-logo.png',
+    );
+    expect(screen.getByRole('img', { name: 'Spice House cover' })).toHaveAttribute(
+      'src',
+      'https://example.com/spice-cover.jpg',
+    );
     expect(screen.getByRole('link', { name: 'View menu' })).toHaveAttribute('href', '/r/spice-house/menu?tableId=9');
     expect(screen.getByRole('link', { name: 'Contact' })).toHaveAttribute('href', '/r/spice-house/contact?tableId=9');
     expect(tableService.validateQr).toHaveBeenCalledWith('9');

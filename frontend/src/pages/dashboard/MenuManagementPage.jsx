@@ -232,6 +232,15 @@ function MenuManagementPage() {
             </label>
           </div>
 
+          {form.imageUrl && (
+            <section className="image-preview-grid" aria-label="Dish image preview">
+              <article>
+                <span>Dish preview</span>
+                <img src={form.imageUrl} alt="Dish preview" />
+              </article>
+            </section>
+          )}
+
           <div className="form-grid">
             <label>
               Spicy level
@@ -291,7 +300,12 @@ function MenuManagementPage() {
                 <tbody>
                   {filteredMenuItems.map((item) => (
                     <tr key={item.id}>
-                      <td>{item.name}</td>
+                      <td>
+                        <div className="table-media-cell">
+                          {item.imageUrl && <img src={item.imageUrl} alt={item.name} />}
+                          <span>{item.name}</span>
+                        </div>
+                      </td>
                       <td>{item.categoryName}</td>
                       <td>₹{item.price}</td>
                       <td>{item.hidden ? 'Hidden' : item.available ? 'Available' : 'Unavailable'}</td>

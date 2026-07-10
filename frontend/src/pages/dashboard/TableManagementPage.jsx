@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import * as tableService from '../../services/tableService';
 import { getApiErrorMessage } from '../../utils/apiError';
+import { getMenuUrlFromQrUrl, getQrImageUrl } from '../../utils/qrCode';
 
 function TableManagementPage() {
   const [tables, setTables] = useState([]);
@@ -110,6 +111,11 @@ function TableManagementPage() {
     toast.success('QR link copied.');
   }
 
+  async function copyMenuLink(qrCodeUrl) {
+    await navigator.clipboard.writeText(getMenuUrlFromQrUrl(qrCodeUrl));
+    toast.success('Menu link copied.');
+  }
+
   return (
     <section className="page-stack">
       <div>
@@ -180,6 +186,7 @@ function TableManagementPage() {
                 <thead>
                   <tr>
                     <th>Table</th>
+                    <th>QR Preview</th>
                     <th>QR Link</th>
                     <th>Actions</th>
                   </tr>
@@ -190,9 +197,25 @@ function TableManagementPage() {
                       <td>Table {table.tableNumber}</td>
                       <td>
                         {table.qrCodeUrl ? (
-                          <a href={table.qrCodeUrl} target="_blank" rel="noreferrer">
-                            Open QR link
-                          </a>
+                          <img
+                            className="qr-preview"
+                            src={getQrImageUrl(table.qrCodeUrl)}
+                            alt={`QR code for table ${table.tableNumber}`}
+                          />
+                        ) : (
+                          <span className="muted">Not generated</span>
+                        )}
+                      </td>
+                      <td>
+                        {table.qrCodeUrl ? (
+                          <div className="analytics-list compact-list">
+                            <a href={table.qrCodeUrl} target="_blank" rel="noreferrer">
+                              Open QR landing page
+                            </a>
+                            <a href={getMenuUrlFromQrUrl(table.qrCodeUrl)} target="_blank" rel="noreferrer">
+                              Open customer menu
+                            </a>
+                          </div>
                         ) : (
                           <span className="muted">Not generated</span>
                         )}
@@ -206,9 +229,21 @@ function TableManagementPage() {
                             Regenerate
                           </button>
                           {table.qrCodeUrl && (
-                            <button className="ghost-button inline" type="button" onClick={() => copyQr(table.qrCodeUrl)}>
-                              Copy
-                            </button>
+                            <>
+                              <button className="ghost-button inline" type="button" onClick={() => copyQr(table.qrCodeUrl)}>
+                                Copy QR link
+                              </button>
+                              <button className="ghost-button inline" type="button" onClick={() => copyMenuLink(table.qrCodeUrl)}>
+                                Copy menu link
+                              </button>
+                              <a
+                                className="ghost-button inline"
+                                href={getQrImageUrl(table.qrCodeUrl, 512)}
+                                download={`table-${table.tableNumber}-qr.png`}
+                              >
+                                Download QR
+                              </a>
+                            </>
                           )}
                           <button className="danger-button" type="button" onClick={() => handleDelete(table.id)}>
                             Delete

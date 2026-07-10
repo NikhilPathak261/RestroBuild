@@ -23,6 +23,12 @@ public record UpdateRestaurantRequest(
         String email,
 
         @NotBlank(message = "Opening hours are required.")
-        String openingHours
+        String openingHours,
+
+        @Size(max = 1000, message = "Logo URL must be at most 1000 characters.")
+        String logoUrl,
+
+        @Size(max = 1000, message = "Cover image URL must be at most 1000 characters.")
+        String coverImageUrl
 ) {
 }

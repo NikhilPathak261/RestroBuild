@@ -11,6 +11,7 @@ function PublicOrderStatusPage() {
   const { orderId, restaurantSlug } = useParams();
   const [searchParams] = useSearchParams();
   const [order, setOrder] = useState(null);
+  const [orderStatus, setOrderStatus] = useState(null);
   const [reviewForms, setReviewForms] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -20,9 +21,13 @@ function PublicOrderStatusPage() {
 
     async function loadOrder() {
       try {
-        const response = await orderService.getOrder(orderId);
+        const [orderResponse, statusResponse] = await Promise.all([
+          orderService.getOrder(orderId),
+          orderService.getOrderStatus(orderId),
+        ]);
         if (isMounted) {
-          setOrder(response);
+          setOrder(orderResponse);
+          setOrderStatus(statusResponse);
         }
       } catch {
         if (isMounted) {
@@ -44,7 +49,13 @@ function PublicOrderStatusPage() {
 
   useEffect(() => {
     return subscribeToOrder(orderId, () => {
-      orderService.getOrder(orderId).then((response) => setOrder(response));
+      Promise.all([
+        orderService.getOrder(orderId),
+        orderService.getOrderStatus(orderId),
+      ]).then(([orderResponse, statusResponse]) => {
+        setOrder(orderResponse);
+        setOrderStatus(statusResponse);
+      });
     });
   }, [orderId]);
 
@@ -87,14 +98,37 @@ function PublicOrderStatusPage() {
   const menuPath = tableId ? `/r/${restaurantSlug}/menu?tableId=${tableId}` : `/r/${restaurantSlug}/menu`;
   const billPath = tableId ? `/r/${restaurantSlug}/bill/${order.id}?tableId=${tableId}` : `/r/${restaurantSlug}/bill/${order.id}`;
   const canAddMoreItems = ['PENDING', 'PREPARING', 'READY'].includes(order.status);
+  const currentStatus = orderStatus?.status || order.status;
+  const timelineSteps = getTimelineSteps(currentStatus);
 
   return (
     <section className="public-menu">
       <div>
         <p className="eyebrow">Order #{order.id}</p>
-        <h1>{order.status}</h1>
+        <h1>{formatOrderStatus(currentStatus)}</h1>
         <p>Table {order.tableNumber}</p>
       </div>
+
+      <section className="list-panel">
+        <div className="order-tracker-summary">
+          <div>
+            <span className="order-status-pill">{formatOrderStatus(currentStatus)}</span>
+            <h2>{getStatusMessage(currentStatus)}</h2>
+          </div>
+          <div>
+            <span>Estimated time</span>
+            <strong>{getEstimatedTimeLabel(orderStatus?.estimatedTime, currentStatus)}</strong>
+          </div>
+        </div>
+        <ol className="order-timeline" aria-label="Order progress">
+          {timelineSteps.map((step) => (
+            <li className={step.state} key={step.status}>
+              <span>{step.label}</span>
+              <strong>{step.description}</strong>
+            </li>
+          ))}
+        </ol>
+      </section>
 
       <div className="button-row">
         {canAddMoreItems && <Link className="ghost-button" to={menuPath}>Add more items</Link>}
@@ -165,6 +199,76 @@ function PublicOrderStatusPage() {
       )}
     </section>
   );
+}
+
+const ORDER_STEPS = [
+  { status: 'PENDING', label: 'Placed', description: 'The kitchen has received your order.' },
+  { status: 'PREPARING', label: 'Preparing', description: 'Your food is being prepared.' },
+  { status: 'READY', label: 'Ready', description: 'Your order is ready for service.' },
+  { status: 'SERVED', label: 'Served', description: 'Your order has been served.' },
+];
+
+function getTimelineSteps(currentStatus) {
+  if (currentStatus === 'CANCELLED') {
+    return [
+      { ...ORDER_STEPS[0], state: 'completed' },
+      { status: 'CANCELLED', label: 'Cancelled', description: 'This order was cancelled.', state: 'current' },
+    ];
+  }
+
+  const currentIndex = ORDER_STEPS.findIndex((step) => step.status === currentStatus);
+
+  return ORDER_STEPS.map((step, index) => {
+    if (index < currentIndex) {
+      return { ...step, state: 'completed' };
+    }
+
+    if (index === currentIndex) {
+      return { ...step, state: 'current' };
+    }
+
+    return { ...step, state: 'upcoming' };
+  });
+}
+
+function getEstimatedTimeLabel(estimatedTime, status) {
+  if (status === 'SERVED') {
+    return 'Served';
+  }
+
+  if (status === 'CANCELLED') {
+    return 'Cancelled';
+  }
+
+  if (!estimatedTime) {
+    return 'Updating';
+  }
+
+  return `${estimatedTime} min`;
+}
+
+function getStatusMessage(status) {
+  if (status === 'PENDING') {
+    return 'Waiting for kitchen confirmation';
+  }
+
+  if (status === 'PREPARING') {
+    return 'The kitchen is working on it';
+  }
+
+  if (status === 'READY') {
+    return 'Almost there';
+  }
+
+  if (status === 'SERVED') {
+    return 'Enjoy your meal';
+  }
+
+  return 'Order cancelled';
+}
+
+function formatOrderStatus(status) {
+  return status.toLowerCase().replaceAll('_', ' ');
 }
 
 export default PublicOrderStatusPage;

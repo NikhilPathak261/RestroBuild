@@ -22,6 +22,7 @@ vi.mock('../../services/menuService', () => ({
 }));
 
 vi.mock('../../services/orderService', () => ({
+  getCurrentTableOrders: vi.fn(),
   placeOrder: vi.fn(),
 }));
 
@@ -36,6 +37,7 @@ function renderMenu(initialPath = '/r/pizza-palace/menu?tableId=7') {
       <Routes>
         <Route path="/r/:restaurantSlug/menu" element={<PublicMenuPage />} />
         <Route path="/r/:restaurantSlug/orders/:orderId" element={<LocationProbe />} />
+        <Route path="/r/:restaurantSlug/bill/:orderId" element={<LocationProbe />} />
       </Routes>
     </MemoryRouter>,
   );
@@ -44,6 +46,7 @@ function renderMenu(initialPath = '/r/pizza-palace/menu?tableId=7') {
 describe('PublicMenuPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    orderService.getCurrentTableOrders.mockResolvedValue([]);
     categoryService.getPublicCategories.mockResolvedValue([{ id: 1, name: 'Pizza' }]);
     menuService.getPublicMenu.mockResolvedValue([
       {
@@ -76,6 +79,29 @@ describe('PublicMenuPage', () => {
     expect(screen.getByRole('option', { name: 'Pizza' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Margherita' })).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: 'View details' })[0]).toHaveAttribute('href', '/r/pizza-palace/menu/12?tableId=7');
+    expect(orderService.getCurrentTableOrders).toHaveBeenCalledWith(7);
+  });
+
+  it('shows active table orders with tracking and bill links', async () => {
+    orderService.getCurrentTableOrders.mockResolvedValue([
+      {
+        id: 55,
+        status: 'PREPARING',
+        totalAmount: 698,
+        items: [
+          { id: 1, menuItemName: 'Margherita' },
+          { id: 2, menuItemName: 'Chicken Pepperoni' },
+        ],
+      },
+    ]);
+
+    renderMenu();
+
+    expect(await screen.findByRole('heading', { name: 'Order #55' })).toBeInTheDocument();
+    expect(screen.getByText('preparing')).toBeInTheDocument();
+    expect(screen.getByText('2 items - Rs. 698')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Track' })).toHaveAttribute('href', '/r/pizza-palace/orders/55?tableId=7');
+    expect(screen.getByRole('link', { name: 'Bill' })).toHaveAttribute('href', '/r/pizza-palace/bill/55?tableId=7');
   });
 
   it('filters public menu by food type and sorts by price', async () => {
@@ -106,6 +132,7 @@ describe('PublicMenuPage', () => {
       expect(toast.error).toHaveBeenCalledWith('Please scan the table QR code before ordering.');
     });
     expect(orderService.placeOrder).not.toHaveBeenCalled();
+    expect(orderService.getCurrentTableOrders).not.toHaveBeenCalled();
   });
 
   it('places a cart order and navigates to order tracking', async () => {

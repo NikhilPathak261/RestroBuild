@@ -49,6 +49,8 @@ public class RestaurantService {
                 request.phone().trim(),
                 email,
                 request.openingHours().trim(),
+                trimNullable(request.logoUrl()),
+                trimNullable(request.coverImageUrl()),
                 generateUniqueSlug(request.name())
         );
 
@@ -79,7 +81,9 @@ public class RestaurantService {
                 request.address().trim(),
                 request.phone().trim(),
                 email,
-                request.openingHours().trim()
+                request.openingHours().trim(),
+                trimNullable(request.logoUrl()),
+                trimNullable(request.coverImageUrl())
         );
 
         return restaurantMapper.toResponse(restaurant);

@@ -14,6 +14,7 @@ vi.mock('react-toastify', () => ({
 
 vi.mock('../../services/orderService', () => ({
   getOrder: vi.fn(),
+  getOrderStatus: vi.fn(),
 }));
 
 vi.mock('../../services/reviewService', () => ({
@@ -56,12 +57,23 @@ describe('PublicOrderStatusPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     orderService.getOrder.mockResolvedValue(activeOrder);
+    orderService.getOrderStatus.mockResolvedValue({
+      orderId: 55,
+      status: 'READY',
+      estimatedTime: 18,
+    });
   });
 
   it('shows order details with add-more and bill actions', async () => {
     renderOrderStatus();
 
-    expect(await screen.findByRole('heading', { name: 'READY' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'ready' })).toBeInTheDocument();
+    expect(screen.getByText('Almost there')).toBeInTheDocument();
+    expect(screen.getByText('18 min')).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'Order progress' })).toHaveTextContent('Placed');
+    expect(screen.getByRole('list', { name: 'Order progress' })).toHaveTextContent('Preparing');
+    expect(screen.getByRole('list', { name: 'Order progress' })).toHaveTextContent('Ready');
+    expect(screen.getByRole('list', { name: 'Order progress' })).toHaveTextContent('Served');
     expect(screen.getByText('Paneer Tikka')).toBeInTheDocument();
     expect(screen.getByText('Instructions: No onion')).toBeInTheDocument();
 
@@ -72,10 +84,17 @@ describe('PublicOrderStatusPage', () => {
   it('submits reviews once the order is served', async () => {
     const { toast } = await import('react-toastify');
     orderService.getOrder.mockResolvedValue({ ...activeOrder, status: 'SERVED' });
+    orderService.getOrderStatus.mockResolvedValue({
+      orderId: 55,
+      status: 'SERVED',
+      estimatedTime: 18,
+    });
     reviewService.submitReview.mockResolvedValue({});
     renderOrderStatus();
 
-    expect(await screen.findByRole('heading', { name: 'SERVED' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'served' })).toBeInTheDocument();
+    expect(screen.getByText('Enjoy your meal')).toBeInTheDocument();
+    expect(screen.getAllByText('Served')).toHaveLength(2);
     fireEvent.change(screen.getByLabelText('Comment'), { target: { value: 'Great dish' } });
     fireEvent.click(screen.getByRole('button', { name: 'Submit review' }));
 

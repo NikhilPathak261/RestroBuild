@@ -80,6 +80,8 @@ public class Restaurant {
             String phone,
             String email,
             String openingHours,
+            String logoUrl,
+            String coverImageUrl,
             String slug
     ) {
         this.name = name;
@@ -89,6 +91,8 @@ public class Restaurant {
         this.phone = phone;
         this.email = email;
         this.openingHours = openingHours;
+        this.logoUrl = logoUrl;
+        this.coverImageUrl = coverImageUrl;
         this.primaryColor = "#B42318";
         this.secondaryColor = "#FFFFFF";
         this.templateName = "MODERN";
@@ -100,7 +104,9 @@ public class Restaurant {
             String address,
             String phone,
             String email,
-            String openingHours
+            String openingHours,
+            String logoUrl,
+            String coverImageUrl
     ) {
         this.name = name;
         this.description = description;
@@ -108,6 +114,8 @@ public class Restaurant {
         this.phone = phone;
         this.email = email;
         this.openingHours = openingHours;
+        this.logoUrl = logoUrl;
+        this.coverImageUrl = coverImageUrl;
     }
 
     public void updateTheme(String templateName, String primaryColor, String secondaryColor) {

@@ -64,6 +64,8 @@ class AuthenticatedUserServiceTest {
                 "1234567890",
                 "restaurant@test.local",
                 "9 AM - 9 PM",
+                null,
+                null,
                 "test-restaurant"
         );
         Staff staff = new Staff(restaurant, "Kitchen", "kitchen@test.local", "hash", UserRole.ROLE_KITCHEN);

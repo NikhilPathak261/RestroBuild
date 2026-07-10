@@ -15,6 +15,11 @@ export async function getOrderStatus(orderId) {
   return response.data;
 }
 
+export async function getCurrentTableOrders(tableId) {
+  const response = await apiClient.get(`/orders/table/${tableId}`);
+  return response.data;
+}
+
 export async function getRestaurantOrders(status) {
   const response = await apiClient.get('/orders', {
     params: status ? { status } : {},

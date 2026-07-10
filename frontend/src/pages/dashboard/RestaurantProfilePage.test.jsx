@@ -23,6 +23,8 @@ function fillRestaurantForm(name = 'Spice House') {
   fireEvent.change(screen.getByLabelText('Phone'), { target: { value: '9999999999' } });
   fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'owner@spice.test' } });
   fireEvent.change(screen.getByLabelText('Opening hours'), { target: { value: '10 AM - 10 PM' } });
+  fireEvent.change(screen.getByLabelText('Logo URL'), { target: { value: 'https://example.com/logo.png' } });
+  fireEvent.change(screen.getByLabelText('Cover image URL'), { target: { value: 'https://example.com/cover.jpg' } });
 }
 
 describe('RestaurantProfilePage', () => {
@@ -49,8 +51,12 @@ describe('RestaurantProfilePage', () => {
         phone: '9999999999',
         email: 'owner@spice.test',
         openingHours: '10 AM - 10 PM',
+        logoUrl: 'https://example.com/logo.png',
+        coverImageUrl: 'https://example.com/cover.jpg',
       });
     });
+    expect(screen.getByRole('img', { name: 'Restaurant logo preview' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Restaurant cover preview' })).toBeInTheDocument();
     expect(toast.success).toHaveBeenCalledWith('Restaurant created.');
   });
 
@@ -64,6 +70,8 @@ describe('RestaurantProfilePage', () => {
       phone: '111',
       email: 'old@test.local',
       openingHours: '9 AM - 9 PM',
+      logoUrl: 'https://example.com/old-logo.png',
+      coverImageUrl: 'https://example.com/old-cover.jpg',
     });
     restaurantService.updateRestaurant.mockResolvedValue({ id: 8 });
 
@@ -81,6 +89,8 @@ describe('RestaurantProfilePage', () => {
         phone: '111',
         email: 'old@test.local',
         openingHours: '9 AM - 9 PM',
+        logoUrl: 'https://example.com/old-logo.png',
+        coverImageUrl: 'https://example.com/old-cover.jpg',
       });
     });
     expect(toast.success).toHaveBeenCalledWith('Restaurant updated.');

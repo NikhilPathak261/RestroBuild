@@ -76,18 +76,30 @@ function PublicHomePage() {
         '--secondary': restaurant.secondaryColor || '#FFFFFF',
       }}
     >
-      <p className="eyebrow">Welcome to</p>
-      <h1>{restaurant.name}</h1>
-      <p>{restaurant.about || restaurant.description}</p>
-      {qrContext && (
-        <div className="empty-state compact">
-          <strong>Table {qrContext.tableNumber}</strong>
-          <p>Your orders will be linked to this table.</p>
-        </div>
+      {restaurant.coverImageUrl && (
+        <img className="public-cover" src={restaurant.coverImageUrl} alt={`${restaurant.name} cover`} />
       )}
-      <div className="public-actions">
-        <Link to={`/r/${restaurant.slug}/menu${tableQuery}`}>View menu</Link>
-        <Link to={`/r/${restaurant.slug}/contact${tableQuery}`}>Contact</Link>
+      <div className="public-home-content">
+        <div className="public-brand-row">
+          {restaurant.logoUrl && (
+            <img className="public-logo" src={restaurant.logoUrl} alt={`${restaurant.name} logo`} />
+          )}
+          <div>
+            <p className="eyebrow">Welcome to</p>
+            <h1>{restaurant.name}</h1>
+          </div>
+        </div>
+        <p>{restaurant.about || restaurant.description}</p>
+        {qrContext && (
+          <div className="empty-state compact">
+            <strong>Table {qrContext.tableNumber}</strong>
+            <p>Your orders will be linked to this table.</p>
+          </div>
+        )}
+        <div className="public-actions">
+          <Link to={`/r/${restaurant.slug}/menu${tableQuery}`}>View menu</Link>
+          <Link to={`/r/${restaurant.slug}/contact${tableQuery}`}>Contact</Link>
+        </div>
       </div>
     </section>
   );

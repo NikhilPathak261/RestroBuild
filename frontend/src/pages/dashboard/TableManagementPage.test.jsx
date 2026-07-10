@@ -73,9 +73,23 @@ describe('TableManagementPage', () => {
     });
     expect(toast.success).toHaveBeenCalledWith('Table updated.');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Copy' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Copy QR link' }));
     await waitFor(() => {
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith(table.qrCodeUrl);
     });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Copy menu link' }));
+    await waitFor(() => {
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith('http://localhost:5173/r/spice-house/menu?tableId=5');
+    });
+
+    expect(screen.getByRole('img', { name: 'QR code for table 12' })).toHaveAttribute(
+      'src',
+      expect.stringContaining('api.qrserver.com'),
+    );
+    expect(screen.getByRole('link', { name: 'Download QR' })).toHaveAttribute(
+      'download',
+      'table-12-qr.png',
+    );
   });
 });

@@ -10,6 +10,8 @@ const emptyForm = {
   phone: '',
   email: '',
   openingHours: '',
+  logoUrl: '',
+  coverImageUrl: '',
 };
 
 function RestaurantProfilePage() {
@@ -37,6 +39,8 @@ function RestaurantProfilePage() {
           phone: restaurant.phone || '',
           email: restaurant.email || '',
           openingHours: restaurant.openingHours || '',
+          logoUrl: restaurant.logoUrl || '',
+          coverImageUrl: restaurant.coverImageUrl || '',
         });
       } catch (error) {
         if (error.response?.status !== 404) {
@@ -133,6 +137,35 @@ function RestaurantProfilePage() {
             placeholder="Mon-Sun, 10:00 AM - 11:00 PM"
           />
         </label>
+
+        <div className="form-grid">
+          <label>
+            Logo URL
+            <input name="logoUrl" value={form.logoUrl} onChange={handleChange} placeholder="https://..." maxLength={1000} />
+          </label>
+
+          <label>
+            Cover image URL
+            <input name="coverImageUrl" value={form.coverImageUrl} onChange={handleChange} placeholder="https://..." maxLength={1000} />
+          </label>
+        </div>
+
+        {(form.logoUrl || form.coverImageUrl) && (
+          <section className="image-preview-grid" aria-label="Restaurant media previews">
+            {form.logoUrl && (
+              <article>
+                <span>Logo preview</span>
+                <img src={form.logoUrl} alt="Restaurant logo preview" />
+              </article>
+            )}
+            {form.coverImageUrl && (
+              <article>
+                <span>Cover preview</span>
+                <img src={form.coverImageUrl} alt="Restaurant cover preview" />
+              </article>
+            )}
+          </section>
+        )}
 
         <button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Saving...' : restaurantId ? 'Save changes' : 'Create restaurant'}

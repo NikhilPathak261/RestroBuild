@@ -24,6 +24,9 @@ function PublicAboutPage() {
     >
       <p className="eyebrow">About</p>
       <h1>{restaurant.name}</h1>
+      {restaurant.coverImageUrl && (
+        <img className="public-cover compact" src={restaurant.coverImageUrl} alt={`${restaurant.name} cover`} />
+      )}
       <p>{restaurant.about || restaurant.description || 'This restaurant has not added an about section yet.'}</p>
     </section>
   );

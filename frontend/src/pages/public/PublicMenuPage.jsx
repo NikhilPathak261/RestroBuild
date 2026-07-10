@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { ErrorState, LoadingState } from '../../components/PageState';
@@ -14,14 +14,17 @@ function PublicMenuPage() {
   const [menuItems, setMenuItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [cartItems, setCartItems] = useState([]);
+  const [activeOrders, setActiveOrders] = useState([]);
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [foodType, setFoodType] = useState('');
   const [sortOrder, setSortOrder] = useState('');
   const [specialInstructions, setSpecialInstructions] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   const [isOrdering, setIsOrdering] = useState(false);
   const [error, setError] = useState('');
+  const [ordersError, setOrdersError] = useState('');
   const tableId = searchParams.get('tableId');
   const tableQuery = tableId ? `?tableId=${tableId}` : '';
 
@@ -51,6 +54,28 @@ function PublicMenuPage() {
     () => cartItems.reduce((total, item) => total + Number(item.price) * item.quantity, 0),
     [cartItems],
   );
+
+  const loadCurrentTableOrders = useCallback(async () => {
+    if (!tableId) {
+      setActiveOrders([]);
+      setOrdersError('');
+      setIsLoadingOrders(false);
+      return;
+    }
+
+    setIsLoadingOrders(true);
+    setOrdersError('');
+
+    try {
+      const response = await orderService.getCurrentTableOrders(Number(tableId));
+      setActiveOrders(response);
+    } catch {
+      setOrdersError('Could not load active table orders.');
+      setActiveOrders([]);
+    } finally {
+      setIsLoadingOrders(false);
+    }
+  }, [tableId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -83,6 +108,10 @@ function PublicMenuPage() {
       isMounted = false;
     };
   }, [restaurantSlug]);
+
+  useEffect(() => {
+    loadCurrentTableOrders();
+  }, [loadCurrentTableOrders]);
 
   if (isLoading) {
     return <LoadingState label="Loading menu..." />;
@@ -152,6 +181,52 @@ function PublicMenuPage() {
         <p className="eyebrow">Menu</p>
         <h1>Choose your dishes</h1>
       </div>
+
+      {tableId && (
+        <section className="list-panel">
+          <div className="list-header">
+            <h2>Active table orders</h2>
+            <button
+              className="ghost-button inline"
+              type="button"
+              onClick={loadCurrentTableOrders}
+              disabled={isLoadingOrders}
+            >
+              {isLoadingOrders ? 'Refreshing...' : 'Refresh'}
+            </button>
+          </div>
+          {ordersError && <div className="empty-state compact">{ordersError}</div>}
+          {!ordersError && isLoadingOrders && activeOrders.length === 0 && (
+            <div className="empty-state compact">Loading active orders...</div>
+          )}
+          {!ordersError && !isLoadingOrders && activeOrders.length === 0 && (
+            <div className="empty-state compact">No active orders for this table yet.</div>
+          )}
+          {activeOrders.length > 0 && (
+            <div className="active-order-grid">
+              {activeOrders.map((order) => (
+                <article className="active-order-card" key={order.id}>
+                  <div>
+                    <span className="order-status-pill">{formatOrderStatus(order.status)}</span>
+                    <h3>Order #{order.id}</h3>
+                    <p>
+                      {order.items.length} item{order.items.length === 1 ? '' : 's'} - Rs. {order.totalAmount}
+                    </p>
+                  </div>
+                  <div className="table-actions">
+                    <Link className="ghost-button inline" to={`/r/${restaurantSlug}/orders/${order.id}${tableQuery}`}>
+                      Track
+                    </Link>
+                    <Link className="ghost-button inline" to={`/r/${restaurantSlug}/bill/${order.id}${tableQuery}`}>
+                      Bill
+                    </Link>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       <div className="public-menu-filters">
         <input
@@ -254,6 +329,10 @@ function formatFoodType(foodType) {
   }
 
   return foodType === 'VEG' ? 'Veg' : 'Food';
+}
+
+function formatOrderStatus(status) {
+  return status.toLowerCase().replaceAll('_', ' ');
 }
 
 export default PublicMenuPage;
