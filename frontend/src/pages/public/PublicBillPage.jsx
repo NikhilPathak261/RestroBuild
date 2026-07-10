@@ -9,6 +9,7 @@ function PublicBillPage() {
   const [searchParams] = useSearchParams();
   const [order, setOrder] = useState(null);
   const [orderStatus, setOrderStatus] = useState(null);
+  const [tableBill, setTableBill] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState('');
@@ -19,19 +20,21 @@ function PublicBillPage() {
     setError('');
 
     try {
-      const [orderResponse, statusResponse] = await Promise.all([
+      const [orderResponse, statusResponse, billResponse] = await Promise.all([
         orderService.getOrder(orderId),
         orderService.getOrderStatus(orderId),
+        tableId ? orderService.getTableBill(tableId).catch(() => null) : Promise.resolve(null),
       ]);
       setOrder(orderResponse);
       setOrderStatus(statusResponse);
+      setTableBill(billResponse);
     } catch {
       setError('Bill not found.');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }, [orderId]);
+  }, [orderId, tableId]);
 
   useEffect(() => {
     loadOrder();
@@ -42,12 +45,14 @@ function PublicBillPage() {
       Promise.all([
         orderService.getOrder(orderId),
         orderService.getOrderStatus(orderId),
-      ]).then(([orderResponse, statusResponse]) => {
+        tableId ? orderService.getTableBill(tableId).catch(() => null) : Promise.resolve(null),
+      ]).then(([orderResponse, statusResponse, billResponse]) => {
         setOrder(orderResponse);
         setOrderStatus(statusResponse);
+        setTableBill(billResponse);
       });
     });
-  }, [orderId]);
+  }, [orderId, tableId]);
 
   if (isLoading) {
     return <LoadingState label="Loading bill..." />;
@@ -59,8 +64,18 @@ function PublicBillPage() {
 
   const orderPath = tableId ? `/r/${restaurantSlug}/orders/${order.id}?tableId=${tableId}` : `/r/${restaurantSlug}/orders/${order.id}`;
   const menuPath = tableId ? `/r/${restaurantSlug}/menu?tableId=${tableId}` : `/r/${restaurantSlug}/menu`;
-  const subtotal = order.items.reduce((total, item) => total + Number(item.subtotal), 0);
-  const itemCount = order.items.reduce((total, item) => total + Number(item.quantity), 0);
+  const hasTableBill = Boolean(tableBill?.items?.length);
+  const billItems = hasTableBill ? tableBill.items : order.items.map((item) => ({
+    ...item,
+    orderId: order.id,
+    orderStatus: order.status,
+    orderItemId: item.id,
+  }));
+  const subtotal = hasTableBill ? Number(tableBill.subtotal) : billItems.reduce((total, item) => total + Number(item.subtotal), 0);
+  const totalAmount = hasTableBill ? Number(tableBill.totalAmount) : Number(order.totalAmount);
+  const itemCount = hasTableBill ? tableBill.itemCount : billItems.reduce((total, item) => total + Number(item.quantity), 0);
+  const orderCount = hasTableBill ? tableBill.orderCount : 1;
+  const tableNumber = hasTableBill ? tableBill.tableNumber : order.tableNumber;
   const currentStatus = orderStatus?.status || order.status;
   const canAddMoreItems = ['PENDING', 'PREPARING', 'READY'].includes(currentStatus);
 
@@ -68,8 +83,8 @@ function PublicBillPage() {
     <section className="public-menu">
       <div>
         <p className="eyebrow">Bill Summary</p>
-        <h1>Order #{order.id}</h1>
-        <p>Table {order.tableNumber} - {formatOrderStatus(currentStatus)}</p>
+        <h1>{hasTableBill ? `Table ${tableNumber} bill` : `Order #${order.id}`}</h1>
+        <p>{hasTableBill ? `${orderCount} order${orderCount === 1 ? '' : 's'} in this table bill` : `Table ${tableNumber} - ${formatOrderStatus(currentStatus)}`}</p>
         <button className="ghost-button inline" type="button" onClick={loadOrder} disabled={isRefreshing}>
           {isRefreshing ? 'Refreshing...' : 'Refresh bill'}
         </button>
@@ -89,7 +104,7 @@ function PublicBillPage() {
         <article>
           <span>Items</span>
           <strong>{itemCount}</strong>
-          <p>{order.items.length} dish{order.items.length === 1 ? '' : 'es'} on this bill.</p>
+          <p>{billItems.length} line item{billItems.length === 1 ? '' : 's'} on this bill.</p>
         </article>
       </section>
 
@@ -105,8 +120,8 @@ function PublicBillPage() {
               </tr>
             </thead>
             <tbody>
-              {order.items.map((item) => (
-                <tr key={item.id}>
+              {billItems.map((item) => (
+                <tr key={`${item.orderId}-${item.orderItemId || item.id}`}>
                   <td>{item.menuItemName}</td>
                   <td>{item.quantity}</td>
                   <td>Rs. {item.price}</td>
@@ -125,7 +140,7 @@ function PublicBillPage() {
           </div>
           <div>
             <span>Total</span>
-            <strong>Rs. {order.totalAmount}</strong>
+            <strong>Rs. {totalAmount}</strong>
           </div>
         </div>
       </section>

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import apiClient from './apiClient';
-import { getOrderTimeline } from './orderService';
+import { getOrderTimeline, getTableBill } from './orderService';
 
 vi.mock('./apiClient', () => ({
   default: {
@@ -23,5 +23,21 @@ describe('orderService', () => {
 
     await expect(getOrderTimeline(55)).resolves.toEqual(timeline);
     expect(apiClient.get).toHaveBeenCalledWith('/orders/55/timeline');
+  });
+
+  it('fetches the public table bill', async () => {
+    const bill = {
+      tableId: 4,
+      tableNumber: 4,
+      orderCount: 2,
+      itemCount: 4,
+      subtotal: 900,
+      totalAmount: 900,
+      items: [],
+    };
+    apiClient.get.mockResolvedValue({ data: bill });
+
+    await expect(getTableBill(4)).resolves.toEqual(bill);
+    expect(apiClient.get).toHaveBeenCalledWith('/orders/table/4/bill');
   });
 });

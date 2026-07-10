@@ -4,6 +4,8 @@ import com.restrobuild.exception.BusinessException;
 import com.restrobuild.exception.ResourceNotFoundException;
 import com.restrobuild.menu.entity.MenuItem;
 import com.restrobuild.menu.repository.MenuItemRepository;
+import com.restrobuild.order.dto.OrderBillItemResponse;
+import com.restrobuild.order.dto.OrderBillResponse;
 import com.restrobuild.order.dto.OrderResponse;
 import com.restrobuild.order.dto.OrderStatusResponse;
 import com.restrobuild.order.dto.OrderTimelineStepResponse;
@@ -23,6 +25,7 @@ import com.restrobuild.websocket.service.OrderEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.EnumSet;
@@ -96,6 +99,52 @@ public class OrderService {
                 .stream()
                 .map(orderMapper::toResponse)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public OrderBillResponse getTableBill(Long tableId) {
+        RestaurantTable table = tableRepository.findByIdAndActiveTrue(tableId)
+                .orElseThrow(() -> new ResourceNotFoundException("Table not found."));
+        Restaurant restaurant = table.getRestaurant();
+        if (!restaurant.isActive() || !restaurant.isPublished()) {
+            throw new ResourceNotFoundException("Restaurant website not found.");
+        }
+
+        List<OrderStatus> billStatuses = List.copyOf(EnumSet.of(
+                OrderStatus.PENDING,
+                OrderStatus.PREPARING,
+                OrderStatus.READY,
+                OrderStatus.SERVED
+        ));
+        List<CustomerOrder> orders = orderRepository.findByTableIdAndStatusInOrderByOrderedAtAsc(tableId, billStatuses);
+        List<OrderBillItemResponse> items = orders.stream()
+                .flatMap(order -> order.getItems().stream().map(item -> new OrderBillItemResponse(
+                        order.getId(),
+                        order.getStatus(),
+                        item.getId(),
+                        item.getMenuItem().getId(),
+                        item.getMenuItem().getName(),
+                        item.getQuantity(),
+                        item.getPrice(),
+                        item.getSubtotal()
+                )))
+                .toList();
+        BigDecimal subtotal = items.stream()
+                .map(OrderBillItemResponse::subtotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        int itemCount = items.stream()
+                .mapToInt(OrderBillItemResponse::quantity)
+                .sum();
+
+        return new OrderBillResponse(
+                table.getId(),
+                table.getTableNumber(),
+                orders.size(),
+                itemCount,
+                subtotal,
+                subtotal,
+                items
+        );
     }
 
     @Transactional(readOnly = true)

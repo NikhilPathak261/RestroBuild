@@ -25,6 +25,11 @@ export async function getCurrentTableOrders(tableId) {
   return response.data;
 }
 
+export async function getTableBill(tableId) {
+  const response = await apiClient.get(`/orders/table/${tableId}/bill`);
+  return response.data;
+}
+
 export async function getRestaurantOrders(filters = {}) {
   const params = typeof filters === 'string'
     ? (filters ? { status: filters } : {})

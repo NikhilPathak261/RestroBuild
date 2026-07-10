@@ -1,6 +1,7 @@
 package com.restrobuild.order.controller;
 
 import com.restrobuild.common.ApiResponse;
+import com.restrobuild.order.dto.OrderBillResponse;
 import com.restrobuild.order.dto.OrderResponse;
 import com.restrobuild.order.dto.OrderStatusResponse;
 import com.restrobuild.order.dto.OrderTimelineStepResponse;
@@ -48,6 +49,12 @@ public class OrderController {
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getCurrentTableOrders(@PathVariable Long tableId) {
         List<OrderResponse> response = orderService.getCurrentTableOrders(tableId);
         return ResponseEntity.ok(ApiResponse.success("Table orders fetched successfully.", response));
+    }
+
+    @GetMapping("/api/orders/table/{tableId}/bill")
+    public ResponseEntity<ApiResponse<OrderBillResponse>> getTableBill(@PathVariable Long tableId) {
+        OrderBillResponse response = orderService.getTableBill(tableId);
+        return ResponseEntity.ok(ApiResponse.success("Table bill fetched successfully.", response));
     }
 
     @GetMapping("/api/orders")

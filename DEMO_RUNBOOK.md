@@ -44,7 +44,7 @@ npm run dev
 3. Open a table QR link from the owner table page, then browse the public menu.
 4. Preview and download a table QR code from the owner table page.
 5. Use search, category, food type, spicy, sweet, and price filters.
-6. Add dishes to the cart, open `Review cart`, adjust quantities or instructions, place an order, then show order tracking and bill pages.
+6. Add dishes to the cart, open `Review cart`, adjust quantities or instructions, place an order, then show order tracking and the table-level bill page.
 7. Log in as kitchen staff and move a pending order to preparing, then ready.
    Use the `Kitchen demo` button on the login page.
 8. Log in as waiter and mark a ready order served, then show served history.
