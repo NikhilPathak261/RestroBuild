@@ -75,6 +75,7 @@ describe('PublicMenuPage', () => {
     expect(await screen.findByRole('heading', { name: 'Choose your dishes' })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Pizza' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Margherita' })).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: 'View details' })[0]).toHaveAttribute('href', '/r/pizza-palace/menu/12?tableId=7');
   });
 
   it('filters public menu by food type and sorts by price', async () => {

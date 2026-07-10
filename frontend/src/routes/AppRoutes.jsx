@@ -18,6 +18,7 @@ import WebsiteSettingsPage from '../pages/dashboard/WebsiteSettingsPage';
 import PublicAboutPage from '../pages/public/PublicAboutPage';
 import PublicBillPage from '../pages/public/PublicBillPage';
 import PublicContactPage from '../pages/public/PublicContactPage';
+import PublicDishDetailsPage from '../pages/public/PublicDishDetailsPage';
 import PublicHomePage from '../pages/public/PublicHomePage';
 import PublicMenuPage from '../pages/public/PublicMenuPage';
 import PublicOrderStatusPage from '../pages/public/PublicOrderStatusPage';
@@ -71,6 +72,7 @@ function AppRoutes() {
         <Route path="about" element={<PublicAboutPage />} />
         <Route path="contact" element={<PublicContactPage />} />
         <Route path="menu" element={<PublicMenuPage />} />
+        <Route path="menu/:menuItemId" element={<PublicDishDetailsPage />} />
         <Route path="orders/:orderId" element={<PublicOrderStatusPage />} />
         <Route path="bill/:orderId" element={<PublicBillPage />} />
       </Route>

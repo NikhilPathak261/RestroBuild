@@ -474,7 +474,7 @@ th {
 .public-menu-filters {
   display: grid;
   gap: 1rem;
-  grid-template-columns: minmax(0, 1fr) 220px;
+  grid-template-columns: minmax(0, 1fr) repeat(3, minmax(160px, 220px));
 }
 
 .public-menu-filters input,
@@ -553,6 +553,20 @@ th {
   padding: 0.65rem;
 }
 
+.dish-detail-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(240px, 360px) minmax(0, 1fr);
+}
+
+.dish-detail-grid img {
+  border-radius: 8px;
+  height: 100%;
+  max-height: 360px;
+  object-fit: cover;
+  width: 100%;
+}
+
 .analytics-grid {
   display: grid;
   gap: 1rem;
@@ -610,6 +624,7 @@ th {
   .management-grid,
   .management-grid.wide,
   .public-menu-filters,
+  .dish-detail-grid,
   .menu-card-grid,
   .review-form-grid,
   .analytics-grid,

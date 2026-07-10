@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { ErrorState, LoadingState } from '../../components/PageState';
 import * as categoryService from '../../services/categoryService';
@@ -23,6 +23,7 @@ function PublicMenuPage() {
   const [isOrdering, setIsOrdering] = useState(false);
   const [error, setError] = useState('');
   const tableId = searchParams.get('tableId');
+  const tableQuery = tableId ? `?tableId=${tableId}` : '';
 
   const filteredItems = useMemo(() => {
     const keyword = search.trim().toLowerCase();
@@ -230,7 +231,11 @@ function PublicMenuPage() {
                 <span>{item.categoryName}</span>
                 <h2>{item.name}</h2>
                 <p>{item.description}</p>
+                <p>{formatFoodType(item.foodType)} - {item.preparationTime ?? 0} min</p>
                 <strong>Rs. {item.price}</strong>
+                <Link className="ghost-button inline" to={`/r/${restaurantSlug}/menu/${item.id}${tableQuery}`}>
+                  View details
+                </Link>
                 <button type="button" onClick={() => addToCart(item)}>
                   Add to order
                 </button>
@@ -241,6 +246,14 @@ function PublicMenuPage() {
       )}
     </section>
   );
+}
+
+function formatFoodType(foodType) {
+  if (foodType === 'NON_VEG') {
+    return 'Non-veg';
+  }
+
+  return foodType === 'VEG' ? 'Veg' : 'Food';
 }
 
 export default PublicMenuPage;

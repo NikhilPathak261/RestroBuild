@@ -39,3 +39,8 @@ export async function getPublicMenu(restaurantSlug) {
   const response = await apiClient.get(`/public/${restaurantSlug}/menu`);
   return response.data;
 }
+
+export async function getPublicMenuItem(restaurantSlug, menuItemId) {
+  const response = await apiClient.get(`/public/${restaurantSlug}/menu/${menuItemId}`);
+  return response.data;
+}
