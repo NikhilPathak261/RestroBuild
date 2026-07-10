@@ -16,6 +16,7 @@ import StaffManagementPage from '../pages/dashboard/StaffManagementPage';
 import TableManagementPage from '../pages/dashboard/TableManagementPage';
 import WebsiteSettingsPage from '../pages/dashboard/WebsiteSettingsPage';
 import PublicAboutPage from '../pages/public/PublicAboutPage';
+import PublicBillPage from '../pages/public/PublicBillPage';
 import PublicContactPage from '../pages/public/PublicContactPage';
 import PublicHomePage from '../pages/public/PublicHomePage';
 import PublicMenuPage from '../pages/public/PublicMenuPage';
@@ -71,6 +72,7 @@ function AppRoutes() {
         <Route path="contact" element={<PublicContactPage />} />
         <Route path="menu" element={<PublicMenuPage />} />
         <Route path="orders/:orderId" element={<PublicOrderStatusPage />} />
+        <Route path="bill/:orderId" element={<PublicBillPage />} />
       </Route>
 
       <Route path="/" element={<Navigate to="/login" replace />} />

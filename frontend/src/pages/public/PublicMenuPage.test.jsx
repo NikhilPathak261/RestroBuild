@@ -53,6 +53,17 @@ describe('PublicMenuPage', () => {
         categoryId: 1,
         categoryName: 'Pizza',
         price: 299,
+        foodType: 'VEG',
+        imageUrl: '',
+      },
+      {
+        id: 12,
+        name: 'Chicken Pepperoni',
+        description: 'Loaded pepperoni pizza',
+        categoryId: 1,
+        categoryName: 'Pizza',
+        price: 399,
+        foodType: 'NON_VEG',
         imageUrl: '',
       },
     ]);
@@ -66,11 +77,29 @@ describe('PublicMenuPage', () => {
     expect(screen.getByRole('heading', { name: 'Margherita' })).toBeInTheDocument();
   });
 
-  it('requires a table QR before quick ordering', async () => {
+  it('filters public menu by food type and sorts by price', async () => {
+    renderMenu();
+
+    expect(await screen.findByRole('heading', { name: 'Chicken Pepperoni' })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Filter by food type'), { target: { value: 'VEG' } });
+    expect(screen.getByRole('heading', { name: 'Margherita' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Chicken Pepperoni' })).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Filter by food type'), { target: { value: '' } });
+    fireEvent.change(screen.getByLabelText('Sort menu'), { target: { value: 'PRICE_DESC' } });
+
+    const menuItems = screen.getAllByRole('article');
+    expect(menuItems[0]).toHaveTextContent('Chicken Pepperoni');
+    expect(menuItems[1]).toHaveTextContent('Margherita');
+  });
+
+  it('requires a table QR before placing the cart order', async () => {
     const { toast } = await import('react-toastify');
     renderMenu('/r/pizza-palace/menu');
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Order 1' }));
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Add to order' }))[0]);
+    fireEvent.click(screen.getByRole('button', { name: 'Place order' }));
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Please scan the table QR code before ordering.');
@@ -78,17 +107,21 @@ describe('PublicMenuPage', () => {
     expect(orderService.placeOrder).not.toHaveBeenCalled();
   });
 
-  it('places a quick order and navigates to order tracking', async () => {
+  it('places a cart order and navigates to order tracking', async () => {
     const { toast } = await import('react-toastify');
     orderService.placeOrder.mockResolvedValue({ id: 99 });
     renderMenu();
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Order 1' }));
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Add to order' }))[0]);
+    fireEvent.click(screen.getByRole('button', { name: 'Add one Chicken Pepperoni' }));
+    fireEvent.change(screen.getByLabelText('Special instructions'), { target: { value: 'Less spicy' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Place order' }));
 
     await waitFor(() => {
       expect(orderService.placeOrder).toHaveBeenCalledWith({
         tableId: 7,
-        items: [{ menuItemId: 11, quantity: 1 }],
+        items: [{ menuItemId: 12, quantity: 2 }],
+        specialInstructions: 'Less spicy',
       });
     });
 

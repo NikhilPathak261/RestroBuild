@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import { useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { ErrorState, LoadingState } from '../../components/PageState';
 import * as orderService from '../../services/orderService';
 import * as reviewService from '../../services/reviewService';
@@ -8,7 +8,8 @@ import { subscribeToOrder } from '../../services/realtimeService';
 import { getApiErrorMessage } from '../../utils/apiError';
 
 function PublicOrderStatusPage() {
-  const { orderId } = useParams();
+  const { orderId, restaurantSlug } = useParams();
+  const [searchParams] = useSearchParams();
   const [order, setOrder] = useState(null);
   const [reviewForms, setReviewForms] = useState({});
   const [isLoading, setIsLoading] = useState(true);
@@ -82,12 +83,22 @@ function PublicOrderStatusPage() {
     return <ErrorState title={error} />;
   }
 
+  const tableId = searchParams.get('tableId');
+  const menuPath = tableId ? `/r/${restaurantSlug}/menu?tableId=${tableId}` : `/r/${restaurantSlug}/menu`;
+  const billPath = tableId ? `/r/${restaurantSlug}/bill/${order.id}?tableId=${tableId}` : `/r/${restaurantSlug}/bill/${order.id}`;
+  const canAddMoreItems = ['PENDING', 'PREPARING', 'READY'].includes(order.status);
+
   return (
     <section className="public-menu">
       <div>
         <p className="eyebrow">Order #{order.id}</p>
         <h1>{order.status}</h1>
         <p>Table {order.tableNumber}</p>
+      </div>
+
+      <div className="button-row">
+        {canAddMoreItems && <Link className="ghost-button" to={menuPath}>Add more items</Link>}
+        <Link className="ghost-button" to={billPath}>View bill</Link>
       </div>
 
       <div className="list-panel">
@@ -105,13 +116,14 @@ function PublicOrderStatusPage() {
                 <tr key={item.id}>
                   <td>{item.menuItemName}</td>
                   <td>{item.quantity}</td>
-                  <td>₹{item.subtotal}</td>
+                  <td>Rs. {item.subtotal}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <h2>Total: ₹{order.totalAmount}</h2>
+        {order.specialInstructions && <p>Instructions: {order.specialInstructions}</p>}
+        <h2>Total: Rs. {order.totalAmount}</h2>
       </div>
 
       {order.status === 'SERVED' && (
