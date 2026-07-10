@@ -58,6 +58,22 @@ button:disabled {
   color: #667085;
 }
 
+.status-badge {
+  background: #f2f4f7;
+  border-radius: 999px;
+  color: #475467;
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 800;
+  margin-bottom: 0.35rem;
+  padding: 0.2rem 0.55rem;
+}
+
+.status-badge.success {
+  background: #ecfdf3;
+  color: #027a48;
+}
+
 .auth-shell {
   display: grid;
   grid-template-columns: minmax(320px, 480px) 1fr;
@@ -116,6 +132,27 @@ button:disabled {
   padding: 0.75rem;
 }
 
+.demo-login-panel {
+  border: 1px solid #eaecf0;
+  border-radius: 8px;
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.demo-login-panel span {
+  color: #667085;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.demo-login-panel div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 .dashboard-form {
   background: #fff;
   border: 1px solid #eaecf0;
@@ -141,6 +178,11 @@ button:disabled {
   font: inherit;
   padding: 0.75rem;
   resize: vertical;
+}
+
+.form-hint {
+  color: var(--muted);
+  font-size: 0.85rem;
 }
 
 .form-grid {
@@ -513,7 +555,7 @@ th {
 .public-menu-filters {
   display: grid;
   gap: 1rem;
-  grid-template-columns: minmax(0, 1fr) repeat(3, minmax(160px, 220px));
+  grid-template-columns: minmax(0, 1fr) repeat(5, minmax(130px, 180px));
 }
 
 .public-menu-filters input,
@@ -725,6 +767,11 @@ th {
 
 .order-timeline strong {
   font-weight: 500;
+}
+
+.order-timeline time {
+  color: #667085;
+  font-size: 0.85rem;
 }
 
 .bill-summary-grid {

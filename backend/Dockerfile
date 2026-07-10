@@ -10,6 +10,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends wget \
     && rm -rf /var/lib/apt/lists/*
 RUN groupadd --system restrobuild && useradd --system --gid restrobuild restrobuild
+RUN mkdir -p /app/uploads/media && chown -R restrobuild:restrobuild /app/uploads
 COPY --from=build --chown=restrobuild:restrobuild /app/target/restrobuild-backend-0.0.1-SNAPSHOT.jar app.jar
 USER restrobuild
 EXPOSE 8080

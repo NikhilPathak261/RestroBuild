@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import * as categoryService from '../../services/categoryService';
 import * as menuService from '../../services/menuService';
+import * as uploadService from '../../services/uploadService';
 import { getApiErrorMessage } from '../../utils/apiError';
 
 const emptyForm = {
@@ -25,6 +26,7 @@ function MenuManagementPage() {
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const filteredMenuItems = useMemo(() => {
     const keyword = search.trim().toLowerCase();
@@ -62,6 +64,24 @@ function MenuManagementPage() {
       ...current,
       [name]: type === 'checkbox' ? checked : value,
     }));
+  }
+
+  async function handleImageUpload(file) {
+    if (!file) {
+      return;
+    }
+
+    setIsUploadingImage(true);
+
+    try {
+      const response = await uploadService.uploadMedia(file);
+      setForm((current) => ({ ...current, imageUrl: response.url }));
+      toast.success('Dish image uploaded.');
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, 'Failed to upload dish image.'));
+    } finally {
+      setIsUploadingImage(false);
+    }
   }
 
   function startEdit(item) {
@@ -232,6 +252,16 @@ function MenuManagementPage() {
             </label>
           </div>
 
+          <label>
+            Upload dish image
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(event) => handleImageUpload(event.target.files?.[0])}
+            />
+            {isUploadingImage && <span className="form-hint">Uploading dish image...</span>}
+          </label>
+
           {form.imageUrl && (
             <section className="image-preview-grid" aria-label="Dish image preview">
               <article>
@@ -279,6 +309,9 @@ function MenuManagementPage() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
+            <button className="ghost-button inline" type="button" onClick={loadPageData} disabled={isLoading}>
+              {isLoading ? 'Refreshing...' : 'Refresh menu'}
+            </button>
           </div>
 
           {isLoading ? (
@@ -307,7 +340,7 @@ function MenuManagementPage() {
                         </div>
                       </td>
                       <td>{item.categoryName}</td>
-                      <td>₹{item.price}</td>
+                      <td>Rs. {item.price}</td>
                       <td>{item.hidden ? 'Hidden' : item.available ? 'Available' : 'Unavailable'}</td>
                       <td>
                         <div className="table-actions">

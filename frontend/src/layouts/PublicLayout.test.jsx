@@ -16,6 +16,7 @@ describe('PublicLayout', () => {
     expect(screen.getByRole('link', { name: 'RestroBuild' })).toHaveAttribute('href', '/r/spice-house?tableId=9');
     expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/r/spice-house?tableId=9');
     expect(screen.getByRole('link', { name: 'Menu' })).toHaveAttribute('href', '/r/spice-house/menu?tableId=9');
+    expect(screen.getByRole('link', { name: 'Cart' })).toHaveAttribute('href', '/r/spice-house/cart?tableId=9');
     expect(screen.getByRole('link', { name: 'About' })).toHaveAttribute('href', '/r/spice-house/about?tableId=9');
     expect(screen.getByRole('link', { name: 'Contact' })).toHaveAttribute('href', '/r/spice-house/contact?tableId=9');
   });

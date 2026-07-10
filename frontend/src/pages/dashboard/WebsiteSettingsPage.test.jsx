@@ -20,6 +20,12 @@ vi.mock('../../services/websiteService', () => ({
 describe('WebsiteSettingsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        writeText: vi.fn().mockResolvedValue(undefined),
+      },
+    });
     websiteService.getWebsiteSettings.mockResolvedValue({
       slug: 'spice-house',
       templateName: 'MODERN',
@@ -79,5 +85,29 @@ describe('WebsiteSettingsPage', () => {
     });
     expect(toast.success).toHaveBeenCalledWith('Website published.');
     expect(screen.getByText(/http:\/\/localhost:5173\/r\/spice-house/)).toBeInTheDocument();
+  });
+
+  it('copies and opens the public website URL', async () => {
+    const { toast } = await import('react-toastify');
+    websiteService.getWebsiteSettings.mockResolvedValue({
+      slug: 'spice-house',
+      templateName: 'MODERN',
+      primaryColor: '#B42318',
+      secondaryColor: '#FFFFFF',
+      about: 'Original story',
+      published: true,
+    });
+
+    render(<WebsiteSettingsPage />);
+
+    expect(await screen.findByText('Published')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Open site' })).toHaveAttribute('href', 'http://localhost:3000/r/spice-house');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Copy URL' }));
+
+    await waitFor(() => {
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith('http://localhost:3000/r/spice-house');
+    });
+    expect(toast.success).toHaveBeenCalledWith('Public website URL copied.');
   });
 });

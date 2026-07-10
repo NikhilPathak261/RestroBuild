@@ -6,6 +6,7 @@ import com.restrobuild.menu.entity.MenuItem;
 import com.restrobuild.menu.repository.MenuItemRepository;
 import com.restrobuild.order.dto.OrderResponse;
 import com.restrobuild.order.dto.OrderStatusResponse;
+import com.restrobuild.order.dto.OrderTimelineStepResponse;
 import com.restrobuild.order.dto.PlaceOrderItemRequest;
 import com.restrobuild.order.dto.PlaceOrderRequest;
 import com.restrobuild.order.entity.CustomerOrder;
@@ -22,6 +23,8 @@ import com.restrobuild.websocket.service.OrderEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -97,10 +100,15 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public List<OrderResponse> getRestaurantOrders(OrderStatus status) {
+        return getRestaurantOrders(status, null, null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getRestaurantOrders(OrderStatus status, Integer tableNumber, LocalDate date) {
         Restaurant restaurant = authenticatedUserService.getAuthenticatedOwnerRestaurant();
-        List<CustomerOrder> orders = status == null
-                ? orderRepository.findByRestaurantIdOrderByOrderedAtDesc(restaurant.getId())
-                : orderRepository.findByRestaurantIdAndStatusOrderByOrderedAtDesc(restaurant.getId(), status);
+        var start = date == null ? null : date.atStartOfDay().toInstant(ZoneOffset.UTC);
+        var end = date == null ? null : date.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC);
+        List<CustomerOrder> orders = orderRepository.findRestaurantOrders(restaurant.getId(), status, tableNumber, start, end);
 
         return orders.stream().map(orderMapper::toResponse).toList();
     }
@@ -168,6 +176,15 @@ public class OrderService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getWaiterServedOrders() {
+        Restaurant restaurant = authenticatedUserService.getAuthenticatedOwnerRestaurant();
+        return orderRepository.findByRestaurantIdAndStatusOrderByOrderedAtDesc(restaurant.getId(), OrderStatus.SERVED)
+                .stream()
+                .map(orderMapper::toResponse)
+                .toList();
+    }
+
     @Transactional
     public OrderResponse markServed(Long orderId) {
         Restaurant restaurant = authenticatedUserService.getAuthenticatedOwnerRestaurant();
@@ -193,6 +210,39 @@ public class OrderService {
         return new OrderStatusResponse(order.getId(), order.getStatus(), estimatedTime);
     }
 
+    @Transactional(readOnly = true)
+    public List<OrderTimelineStepResponse> getOrderTimeline(Long orderId) {
+        CustomerOrder order = getOrderOrThrow(orderId);
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            return List.of(
+                    timelineStep(OrderStatus.PENDING, "Placed", "The kitchen received your order.", "completed", order.getOrderedAt()),
+                    timelineStep(OrderStatus.CANCELLED, "Cancelled", "This order was cancelled.", "current", order.getUpdatedAt())
+            );
+        }
+
+        List<OrderStatus> statuses = List.of(
+                OrderStatus.PENDING,
+                OrderStatus.PREPARING,
+                OrderStatus.READY,
+                OrderStatus.SERVED
+        );
+        int currentIndex = statuses.indexOf(order.getStatus());
+
+        return statuses.stream()
+                .map(status -> {
+                    int stepIndex = statuses.indexOf(status);
+                    String state = getTimelineState(stepIndex, currentIndex);
+                    return timelineStep(
+                            status,
+                            getTimelineLabel(status),
+                            getTimelineDescription(status),
+                            state,
+                            getTimelineTimestamp(order, status, stepIndex, currentIndex)
+                    );
+                })
+                .toList();
+    }
+
     private CustomerOrder getOrderOrThrow(Long orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found."));
@@ -209,5 +259,59 @@ public class OrderService {
 
     private String trimNullable(String value) {
         return value == null ? null : value.trim();
+    }
+
+    private OrderTimelineStepResponse timelineStep(
+            OrderStatus status,
+            String label,
+            String description,
+            String state,
+            java.time.Instant timestamp
+    ) {
+        return new OrderTimelineStepResponse(status, label, description, state, timestamp);
+    }
+
+    private String getTimelineState(int stepIndex, int currentIndex) {
+        if (stepIndex < currentIndex) {
+            return "completed";
+        }
+
+        if (stepIndex == currentIndex) {
+            return "current";
+        }
+
+        return "upcoming";
+    }
+
+    private java.time.Instant getTimelineTimestamp(CustomerOrder order, OrderStatus status, int stepIndex, int currentIndex) {
+        if (status == OrderStatus.PENDING) {
+            return order.getOrderedAt();
+        }
+
+        if (stepIndex == currentIndex) {
+            return order.getUpdatedAt();
+        }
+
+        return null;
+    }
+
+    private String getTimelineLabel(OrderStatus status) {
+        return switch (status) {
+            case PENDING -> "Placed";
+            case PREPARING -> "Preparing";
+            case READY -> "Ready";
+            case SERVED -> "Served";
+            case CANCELLED -> "Cancelled";
+        };
+    }
+
+    private String getTimelineDescription(OrderStatus status) {
+        return switch (status) {
+            case PENDING -> "The kitchen has received your order.";
+            case PREPARING -> "Your food is being prepared.";
+            case READY -> "Your order is ready for service.";
+            case SERVED -> "Your order has been served.";
+            case CANCELLED -> "This order was cancelled.";
+        };
     }
 }

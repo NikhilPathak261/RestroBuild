@@ -129,6 +129,10 @@ public class CustomerOrder {
         return orderedAt;
     }
 
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
     public List<OrderItem> getItems() {
         return items;
     }

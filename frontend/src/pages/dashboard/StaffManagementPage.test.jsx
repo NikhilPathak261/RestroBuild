@@ -30,6 +30,13 @@ describe('StaffManagementPage', () => {
         role: 'KITCHEN',
         active: true,
       },
+      {
+        id: 9,
+        name: 'Kabir',
+        email: 'kabir@test.local',
+        role: 'WAITER',
+        active: false,
+      },
     ]);
   });
 
@@ -64,7 +71,7 @@ describe('StaffManagementPage', () => {
 
     render(<StaffManagementPage />);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Edit' }));
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Edit' }))[0]);
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Riya Sharma' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));
 
@@ -80,6 +87,33 @@ describe('StaffManagementPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Disable' }));
     await waitFor(() => {
       expect(staffService.disableStaff).toHaveBeenCalledWith(7);
+    });
+  });
+
+  it('filters and refreshes staff accounts', async () => {
+    render(<StaffManagementPage />);
+
+    expect(await screen.findByText('Riya')).toBeInTheDocument();
+    expect(screen.getByText('Kabir')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Search staff'), { target: { value: 'kabir' } });
+    expect(screen.queryByText('Riya')).not.toBeInTheDocument();
+    expect(screen.getByText('Kabir')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Search staff'), { target: { value: '' } });
+    fireEvent.change(screen.getByLabelText('Filter staff role'), { target: { value: 'KITCHEN' } });
+    expect(screen.getByText('Riya')).toBeInTheDocument();
+    expect(screen.queryByText('Kabir')).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Filter staff role'), { target: { value: '' } });
+    fireEvent.change(screen.getByLabelText('Filter staff status'), { target: { value: 'DISABLED' } });
+    expect(screen.queryByText('Riya')).not.toBeInTheDocument();
+    expect(screen.getByText('Kabir')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh staff' }));
+
+    await waitFor(() => {
+      expect(staffService.getStaff).toHaveBeenCalledTimes(2);
     });
   });
 });

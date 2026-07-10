@@ -1,0 +1,14 @@
+import apiClient from './apiClient';
+
+export async function uploadMedia(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await apiClient.post('/uploads/media', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
+  return response.data.data ?? response.data;
+}

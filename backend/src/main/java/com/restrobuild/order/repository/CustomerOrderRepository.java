@@ -21,6 +21,23 @@ public interface CustomerOrderRepository extends JpaRepository<CustomerOrder, Lo
 
     List<CustomerOrder> findByRestaurantIdAndStatusInOrderByOrderedAtDesc(Long restaurantId, Collection<OrderStatus> statuses);
 
+    @Query("""
+            select o from CustomerOrder o
+            where o.restaurant.id = :restaurantId
+            and (:status is null or o.status = :status)
+            and (:tableNumber is null or o.table.tableNumber = :tableNumber)
+            and (:start is null or o.orderedAt >= :start)
+            and (:end is null or o.orderedAt < :end)
+            order by o.orderedAt desc
+            """)
+    List<CustomerOrder> findRestaurantOrders(
+            @Param("restaurantId") Long restaurantId,
+            @Param("status") OrderStatus status,
+            @Param("tableNumber") Integer tableNumber,
+            @Param("start") Instant start,
+            @Param("end") Instant end
+    );
+
     long countByRestaurantId(Long restaurantId);
 
     long countByRestaurantIdAndOrderedAtBetween(Long restaurantId, Instant start, Instant end);

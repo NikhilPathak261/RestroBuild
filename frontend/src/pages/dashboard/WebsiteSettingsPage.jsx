@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import * as websiteService from '../../services/websiteService';
 import { getApiErrorMessage } from '../../utils/apiError';
+import { copyText } from '../../utils/clipboard';
 
 const defaultTheme = {
   template: 'MODERN',
@@ -19,6 +20,7 @@ function WebsiteSettingsPage() {
   const [isSavingTheme, setIsSavingTheme] = useState(false);
   const [isSavingAbout, setIsSavingAbout] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const publicUrl = publishedUrl || (slug ? `${window.location.origin}/r/${slug}` : '');
 
   useEffect(() => {
     let isMounted = true;
@@ -107,6 +109,19 @@ function WebsiteSettingsPage() {
     }
   }
 
+  async function copyPublicUrl() {
+    if (!publicUrl) {
+      return;
+    }
+
+    try {
+      await copyText(publicUrl);
+      toast.success('Public website URL copied.');
+    } catch {
+      toast.error('Could not copy public website URL.');
+    }
+  }
+
   if (isLoading) {
     return <section className="empty-state">Loading website settings...</section>;
   }
@@ -168,14 +183,25 @@ function WebsiteSettingsPage() {
 
       <section className="publish-panel">
         <div>
+          <span className={published ? 'status-badge success' : 'status-badge'}>{published ? 'Published' : 'Draft'}</span>
           <h2>{published ? 'Website is published' : 'Publish website'}</h2>
           <p className="muted">
-            Public URL: {publishedUrl || (slug ? `${window.location.origin}/r/${slug}` : 'Create restaurant profile first')}
+            Public URL: {publicUrl || 'Create restaurant profile first'}
           </p>
         </div>
-        <button type="button" onClick={handlePublish} disabled={isPublishing || !slug}>
-          {isPublishing ? 'Publishing...' : published ? 'Publish again' : 'Publish'}
-        </button>
+        <div className="table-actions">
+          <button type="button" onClick={handlePublish} disabled={isPublishing || !slug}>
+            {isPublishing ? 'Publishing...' : published ? 'Publish again' : 'Publish'}
+          </button>
+          <button className="ghost-button inline" type="button" onClick={copyPublicUrl} disabled={!publicUrl}>
+            Copy URL
+          </button>
+          {publicUrl && (
+            <a className="ghost-button inline" href={publicUrl} target="_blank" rel="noreferrer">
+              Open site
+            </a>
+          )}
+        </div>
       </section>
     </section>
   );

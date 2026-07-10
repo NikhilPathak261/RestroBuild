@@ -16,7 +16,7 @@ export function usePublicWebsite(restaurantSlug) {
       try {
         const response = await websiteService.getPublicWebsite(restaurantSlug);
         if (isMounted) {
-          setRestaurant(response.data);
+          setRestaurant(response);
         }
       } catch {
         if (isMounted) {

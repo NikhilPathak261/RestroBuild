@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as restaurantService from '../../services/restaurantService';
+import * as uploadService from '../../services/uploadService';
 import RestaurantProfilePage from './RestaurantProfilePage';
 
 vi.mock('react-toastify', () => ({
@@ -14,6 +15,10 @@ vi.mock('../../services/restaurantService', () => ({
   getMyRestaurant: vi.fn(),
   createRestaurant: vi.fn(),
   updateRestaurant: vi.fn(),
+}));
+
+vi.mock('../../services/uploadService', () => ({
+  uploadMedia: vi.fn(),
 }));
 
 function fillRestaurantForm(name = 'Spice House') {
@@ -94,5 +99,44 @@ describe('RestaurantProfilePage', () => {
       });
     });
     expect(toast.success).toHaveBeenCalledWith('Restaurant updated.');
+  });
+
+  it('uploads restaurant media and saves the returned URLs', async () => {
+    const { toast } = await import('react-toastify');
+    restaurantService.getMyRestaurant.mockRejectedValue({ response: { status: 404 } });
+    restaurantService.createRestaurant.mockResolvedValue({ id: 21 });
+    uploadService.uploadMedia
+      .mockResolvedValueOnce({ url: 'http://localhost:8080/uploads/media/logo.png' })
+      .mockResolvedValueOnce({ url: 'http://localhost:8080/uploads/media/cover.jpg' });
+
+    render(<RestaurantProfilePage />);
+
+    expect(await screen.findByRole('heading', { name: 'Create your restaurant' })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Upload logo'), {
+      target: { files: [new File(['logo'], 'logo.png', { type: 'image/png' })] },
+    });
+    fireEvent.change(screen.getByLabelText('Upload cover image'), {
+      target: { files: [new File(['cover'], 'cover.jpg', { type: 'image/jpeg' })] },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Logo URL')).toHaveValue('http://localhost:8080/uploads/media/logo.png');
+      expect(screen.getByLabelText('Cover image URL')).toHaveValue('http://localhost:8080/uploads/media/cover.jpg');
+    });
+
+    fireEvent.change(screen.getByLabelText('Restaurant name'), { target: { value: 'Spice House' } });
+    fireEvent.change(screen.getByLabelText('Address'), { target: { value: '12 Market Street' } });
+    fireEvent.change(screen.getByLabelText('Phone'), { target: { value: '9999999999' } });
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'owner@spice.test' } });
+    fireEvent.change(screen.getByLabelText('Opening hours'), { target: { value: '10 AM - 10 PM' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Create restaurant' }));
+
+    await waitFor(() => {
+      expect(restaurantService.createRestaurant).toHaveBeenCalledWith(expect.objectContaining({
+        logoUrl: 'http://localhost:8080/uploads/media/logo.png',
+        coverImageUrl: 'http://localhost:8080/uploads/media/cover.jpg',
+      }));
+    });
+    expect(toast.success).toHaveBeenCalledWith('Image uploaded.');
   });
 });

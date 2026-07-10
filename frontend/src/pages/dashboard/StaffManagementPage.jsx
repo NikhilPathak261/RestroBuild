@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
 import * as staffService from '../../services/staffService';
 import { getApiErrorMessage } from '../../utils/apiError';
@@ -14,8 +14,26 @@ function StaffManagementPage() {
   const [staff, setStaff] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const filteredStaff = useMemo(() => {
+    const keyword = search.trim().toLowerCase();
+
+    return staff.filter((member) => {
+      const matchesKeyword = !keyword
+        || member.name.toLowerCase().includes(keyword)
+        || member.email.toLowerCase().includes(keyword);
+      const matchesRole = !roleFilter || member.role === roleFilter;
+      const matchesStatus = !statusFilter
+        || (statusFilter === 'ACTIVE' ? member.active : !member.active);
+
+      return matchesKeyword && matchesRole && matchesStatus;
+    });
+  }, [roleFilter, search, staff, statusFilter]);
 
   useEffect(() => {
     loadStaff();
@@ -140,11 +158,30 @@ function StaffManagementPage() {
         <section className="list-panel">
           <div className="list-header">
             <h2>Staff List</h2>
+            <input
+              aria-label="Search staff"
+              placeholder="Search staff"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+            <select aria-label="Filter staff role" value={roleFilter} onChange={(event) => setRoleFilter(event.target.value)}>
+              <option value="">All roles</option>
+              <option value="KITCHEN">Kitchen</option>
+              <option value="WAITER">Waiter</option>
+            </select>
+            <select aria-label="Filter staff status" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+              <option value="">All statuses</option>
+              <option value="ACTIVE">Active</option>
+              <option value="DISABLED">Disabled</option>
+            </select>
+            <button className="ghost-button inline" type="button" onClick={loadStaff} disabled={isLoading}>
+              {isLoading ? 'Refreshing...' : 'Refresh staff'}
+            </button>
           </div>
 
           {isLoading ? (
             <div className="empty-state compact">Loading staff...</div>
-          ) : staff.length === 0 ? (
+          ) : filteredStaff.length === 0 ? (
             <div className="empty-state compact">No staff members found.</div>
           ) : (
             <div className="responsive-table">
@@ -159,7 +196,7 @@ function StaffManagementPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {staff.map((member) => (
+                  {filteredStaff.map((member) => (
                     <tr key={member.id}>
                       <td>{member.name}</td>
                       <td>{member.email}</td>

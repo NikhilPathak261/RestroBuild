@@ -6,9 +6,11 @@ arch/
 .env.*
 !.env.example
 !**/.env.example
+!.env*.example
 
 # Backend build files
 backend/target/
+uploads/
 
 # Frontend dependencies and build
 frontend/node_modules/

@@ -57,4 +57,15 @@ describe('CategoryManagementPage', () => {
     });
     expect(toast.success).toHaveBeenCalledWith('Category updated.');
   });
+
+  it('refreshes the category list', async () => {
+    render(<CategoryManagementPage />);
+
+    expect(await screen.findByText('Starters')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh categories' }));
+
+    await waitFor(() => {
+      expect(categoryService.getCategories).toHaveBeenCalledTimes(2);
+    });
+  });
 });

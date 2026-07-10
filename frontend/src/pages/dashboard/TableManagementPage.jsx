@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import * as tableService from '../../services/tableService';
 import { getApiErrorMessage } from '../../utils/apiError';
+import { copyText } from '../../utils/clipboard';
 import { getMenuUrlFromQrUrl, getQrImageUrl } from '../../utils/qrCode';
 
 function TableManagementPage() {
@@ -107,13 +108,21 @@ function TableManagementPage() {
   }
 
   async function copyQr(qrCodeUrl) {
-    await navigator.clipboard.writeText(qrCodeUrl);
-    toast.success('QR link copied.');
+    try {
+      await copyText(qrCodeUrl);
+      toast.success('QR link copied.');
+    } catch {
+      toast.error('Could not copy QR link.');
+    }
   }
 
   async function copyMenuLink(qrCodeUrl) {
-    await navigator.clipboard.writeText(getMenuUrlFromQrUrl(qrCodeUrl));
-    toast.success('Menu link copied.');
+    try {
+      await copyText(getMenuUrlFromQrUrl(qrCodeUrl));
+      toast.success('Menu link copied.');
+    } catch {
+      toast.error('Could not copy menu link.');
+    }
   }
 
   return (
@@ -238,7 +247,7 @@ function TableManagementPage() {
                               </button>
                               <a
                                 className="ghost-button inline"
-                                href={getQrImageUrl(table.qrCodeUrl, 512)}
+                                href={tableService.getQrDownloadUrl(table.id)}
                                 download={`table-${table.tableNumber}-qr.png`}
                               >
                                 Download QR

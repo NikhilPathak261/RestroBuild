@@ -28,6 +28,12 @@ public class WaiterController {
         return ResponseEntity.ok(ApiResponse.success("Ready orders fetched successfully.", response));
     }
 
+    @GetMapping("/api/waiter/orders/served")
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getServedOrders() {
+        List<OrderResponse> response = orderService.getWaiterServedOrders();
+        return ResponseEntity.ok(ApiResponse.success("Served orders fetched successfully.", response));
+    }
+
     @PatchMapping("/api/waiter/orders/{orderId}/served")
     public ResponseEntity<ApiResponse<OrderResponse>> markServed(@PathVariable Long orderId) {
         OrderResponse response = orderService.markServed(orderId);

@@ -17,6 +17,7 @@ vi.mock('../../services/tableService', () => ({
   deleteTable: vi.fn(),
   generateQrCodes: vi.fn(),
   regenerateQr: vi.fn(),
+  getQrDownloadUrl: vi.fn((tableId) => `http://localhost:8080/api/qr/${tableId}`),
 }));
 
 const table = {
@@ -88,8 +89,28 @@ describe('TableManagementPage', () => {
       expect.stringContaining('api.qrserver.com'),
     );
     expect(screen.getByRole('link', { name: 'Download QR' })).toHaveAttribute(
+      'href',
+      'http://localhost:8080/api/qr/5',
+    );
+    expect(screen.getByRole('link', { name: 'Download QR' })).toHaveAttribute(
       'download',
       'table-12-qr.png',
     );
+  });
+
+  it('shows copy errors when the clipboard is unavailable', async () => {
+    const { toast } = await import('react-toastify');
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: undefined,
+    });
+
+    render(<TableManagementPage />);
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Copy QR link' }));
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Could not copy QR link.');
+    });
   });
 });

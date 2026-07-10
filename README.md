@@ -142,6 +142,39 @@ Backend runs on
 http://localhost:8080
 ```
 
+## Demo Profile
+
+For a fast local walkthrough, run the backend with the `demo` profile. It seeds a published restaurant, staff users, tables, QR links, menu items, sample orders, and reviews.
+
+```bash
+SPRING_PROFILES_ACTIVE=demo mvn spring-boot:run
+```
+
+Demo logins:
+
+- Owner: `owner@demo.restrobuild.test` / `DemoPass123`
+- Kitchen: `kitchen@demo.restrobuild.test` / `DemoPass123`
+- Waiter: `waiter@demo.restrobuild.test` / `DemoPass123`
+
+The login page includes quick-fill buttons for these demo accounts.
+
+Demo customer website:
+
+```text
+http://localhost:5173/r/spice-house-demo
+```
+
+With Docker, copy `.env.demo.example` to `.env` and start the stack:
+
+```bash
+cp .env.demo.example .env
+docker compose up --build
+```
+
+Uploaded dashboard media is stored in `UPLOAD_MEDIA_DIR` and persisted in the Docker `backend_uploads` volume by default.
+
+See `DEMO_RUNBOOK.md` for the recommended presentation walkthrough.
+
 ---
 
 ## Frontend

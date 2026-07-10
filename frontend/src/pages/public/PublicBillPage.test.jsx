@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as orderService from '../../services/orderService';
@@ -88,5 +88,17 @@ describe('PublicBillPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Print bill' }));
 
     expect(window.print).toHaveBeenCalled();
+  });
+
+  it('manually refreshes the bill summary', async () => {
+    renderBill();
+
+    expect(await screen.findByRole('heading', { name: 'Order #55' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh bill' }));
+
+    await waitFor(() => {
+      expect(orderService.getOrder).toHaveBeenCalledTimes(2);
+      expect(orderService.getOrderStatus).toHaveBeenCalledTimes(2);
+    });
   });
 });

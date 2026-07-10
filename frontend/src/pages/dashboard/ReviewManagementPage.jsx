@@ -53,6 +53,9 @@ function ReviewManagementPage() {
               </option>
             ))}
           </select>
+          <button className="ghost-button inline" type="button" onClick={loadReviews} disabled={isLoading}>
+            {isLoading ? 'Refreshing...' : 'Refresh reviews'}
+          </button>
         </div>
 
         {isLoading ? (

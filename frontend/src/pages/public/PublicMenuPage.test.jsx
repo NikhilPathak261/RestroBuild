@@ -46,6 +46,7 @@ function renderMenu(initialPath = '/r/pizza-palace/menu?tableId=7') {
 describe('PublicMenuPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    window.localStorage.clear();
     orderService.getCurrentTableOrders.mockResolvedValue([]);
     categoryService.getPublicCategories.mockResolvedValue([{ id: 1, name: 'Pizza' }]);
     menuService.getPublicMenu.mockResolvedValue([
@@ -57,6 +58,8 @@ describe('PublicMenuPage', () => {
         categoryName: 'Pizza',
         price: 299,
         foodType: 'VEG',
+        spicyLevel: 1,
+        sweetLevel: 2,
         imageUrl: '',
       },
       {
@@ -67,6 +70,8 @@ describe('PublicMenuPage', () => {
         categoryName: 'Pizza',
         price: 399,
         foodType: 'NON_VEG',
+        spicyLevel: 3,
+        sweetLevel: 0,
         imageUrl: '',
       },
     ]);
@@ -104,7 +109,7 @@ describe('PublicMenuPage', () => {
     expect(screen.getByRole('link', { name: 'Bill' })).toHaveAttribute('href', '/r/pizza-palace/bill/55?tableId=7');
   });
 
-  it('filters public menu by food type and sorts by price', async () => {
+  it('filters public menu by food type, taste levels, and sorts by price', async () => {
     renderMenu();
 
     expect(await screen.findByRole('heading', { name: 'Chicken Pepperoni' })).toBeInTheDocument();
@@ -114,6 +119,16 @@ describe('PublicMenuPage', () => {
     expect(screen.queryByRole('heading', { name: 'Chicken Pepperoni' })).not.toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText('Filter by food type'), { target: { value: '' } });
+    fireEvent.change(screen.getByLabelText('Filter by spicy level'), { target: { value: '3' } });
+    expect(screen.getByRole('heading', { name: 'Chicken Pepperoni' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Margherita' })).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Filter by spicy level'), { target: { value: '' } });
+    fireEvent.change(screen.getByLabelText('Filter by sweet level'), { target: { value: '2' } });
+    expect(screen.getByRole('heading', { name: 'Margherita' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Chicken Pepperoni' })).not.toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Filter by sweet level'), { target: { value: '' } });
     fireEvent.change(screen.getByLabelText('Sort menu'), { target: { value: 'PRICE_DESC' } });
 
     const menuItems = screen.getAllByRole('article');
@@ -155,5 +170,14 @@ describe('PublicMenuPage', () => {
 
     expect(toast.success).toHaveBeenCalledWith('Order placed.');
     expect(await screen.findByTestId('location')).toHaveTextContent('/r/pizza-palace/orders/99?tableId=7');
+  });
+
+  it('persists cart items for the standalone cart page', async () => {
+    renderMenu();
+
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Add to order' }))[0]);
+
+    expect(screen.getByRole('link', { name: 'Review cart' })).toHaveAttribute('href', '/r/pizza-palace/cart?tableId=7');
+    expect(window.localStorage.getItem('restrobuild:public-cart:pizza-palace:7')).toContain('Chicken Pepperoni');
   });
 });

@@ -12,6 +12,8 @@ function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   const loadDashboard = useCallback(async () => {
+    setIsLoading(true);
+
     try {
       const [summaryResponse, topItemsResponse, ordersResponse] = await Promise.all([
         analyticsService.getSummary(),
@@ -49,6 +51,9 @@ function DashboardPage() {
       <div>
         <p className="eyebrow">Owner Dashboard</p>
         <h1>Business overview</h1>
+        <button className="ghost-button inline" type="button" onClick={loadDashboard} disabled={isLoading}>
+          {isLoading ? 'Refreshing...' : 'Refresh dashboard'}
+        </button>
       </div>
 
       {isLoading && <section className="empty-state compact">Loading dashboard...</section>}

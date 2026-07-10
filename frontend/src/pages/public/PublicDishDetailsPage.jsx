@@ -79,11 +79,11 @@ function PublicDishDetailsPage() {
           </div>
           <div>
             <span>Spicy level</span>
-            <strong>{menuItem.spicyLevel ?? 0}/5</strong>
+            <strong>{menuItem.spicyLevel ?? 0}/3</strong>
           </div>
           <div>
             <span>Sweet level</span>
-            <strong>{menuItem.sweetLevel ?? 0}/5</strong>
+            <strong>{menuItem.sweetLevel ?? 0}/3</strong>
           </div>
         </div>
       </section>

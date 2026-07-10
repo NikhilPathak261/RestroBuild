@@ -47,6 +47,8 @@ describe('PublicDishDetailsPage', () => {
     expect(screen.getByText('Rs. 399')).toBeInTheDocument();
     expect(screen.getByText('Non-veg')).toBeInTheDocument();
     expect(screen.getByText('18 min')).toBeInTheDocument();
+    expect(screen.getByText('3/3')).toBeInTheDocument();
+    expect(screen.getByText('0/3')).toBeInTheDocument();
     expect(screen.getByText('Crispy and hot.')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Back to menu' })).toHaveAttribute('href', '/r/cafe/menu?tableId=4');
     expect(menuService.getPublicMenuItem).toHaveBeenCalledWith('cafe', '12');

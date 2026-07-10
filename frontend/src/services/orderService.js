@@ -15,14 +15,23 @@ export async function getOrderStatus(orderId) {
   return response.data;
 }
 
+export async function getOrderTimeline(orderId) {
+  const response = await apiClient.get(`/orders/${orderId}/timeline`);
+  return response.data;
+}
+
 export async function getCurrentTableOrders(tableId) {
   const response = await apiClient.get(`/orders/table/${tableId}`);
   return response.data;
 }
 
-export async function getRestaurantOrders(status) {
+export async function getRestaurantOrders(filters = {}) {
+  const params = typeof filters === 'string'
+    ? (filters ? { status: filters } : {})
+    : Object.fromEntries(Object.entries(filters).filter(([, value]) => value !== '' && value !== null && value !== undefined));
+
   const response = await apiClient.get('/orders', {
-    params: status ? { status } : {},
+    params,
   });
   return response.data;
 }
@@ -59,6 +68,11 @@ export async function markReady(orderId) {
 
 export async function getWaiterReadyOrders() {
   const response = await apiClient.get('/waiter/orders/ready');
+  return response.data;
+}
+
+export async function getWaiterServedOrders() {
+  const response = await apiClient.get('/waiter/orders/served');
   return response.data;
 }
 

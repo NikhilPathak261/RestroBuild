@@ -4,22 +4,25 @@ import * as orderService from '../../services/orderService';
 import { subscribeToWaiterOrders } from '../../services/realtimeService';
 import { getApiErrorMessage } from '../../utils/apiError';
 
-function WaiterOrdersPage() {
+function WaiterOrdersPage({ status = 'READY' }) {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const isServedView = status === 'SERVED';
 
   const loadOrders = useCallback(async () => {
     setIsLoading(true);
 
     try {
-      const response = await orderService.getWaiterReadyOrders();
+      const response = isServedView
+        ? await orderService.getWaiterServedOrders()
+        : await orderService.getWaiterReadyOrders();
       setOrders(response);
     } catch (error) {
       toast.error(getApiErrorMessage(error, 'Failed to load waiter orders.'));
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isServedView]);
 
   useEffect(() => {
     loadOrders();
@@ -43,14 +46,17 @@ function WaiterOrdersPage() {
     <section className="page-stack">
       <div>
         <p className="eyebrow">Waiter</p>
-        <h1>Ready orders</h1>
+        <h1>{isServedView ? 'Served orders' : 'Ready orders'}</h1>
+        <button className="ghost-button inline" type="button" onClick={loadOrders} disabled={isLoading}>
+          {isLoading ? 'Refreshing...' : 'Refresh orders'}
+        </button>
       </div>
 
       <section className="list-panel">
         {isLoading ? (
           <div className="empty-state compact">Loading orders...</div>
         ) : orders.length === 0 ? (
-          <div className="empty-state compact">No ready orders found.</div>
+          <div className="empty-state compact">No {isServedView ? 'served' : 'ready'} orders found.</div>
         ) : (
           <div className="responsive-table">
             <table>
@@ -59,6 +65,7 @@ function WaiterOrdersPage() {
                   <th>Order</th>
                   <th>Table</th>
                   <th>Items</th>
+                  <th>Total</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -68,10 +75,15 @@ function WaiterOrdersPage() {
                     <td>#{order.id}</td>
                     <td>{order.tableNumber}</td>
                     <td>{order.items.map((item) => `${item.quantity}x ${item.menuItemName}`).join(', ')}</td>
+                    <td>Rs. {order.totalAmount}</td>
                     <td>
-                      <button type="button" onClick={() => markServed(order.id)}>
-                        Mark served
-                      </button>
+                      {isServedView ? (
+                        <span className="order-status-pill">Served</span>
+                      ) : (
+                        <button type="button" onClick={() => markServed(order.id)}>
+                          Mark served
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

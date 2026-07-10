@@ -15,6 +15,7 @@ vi.mock('react-toastify', () => ({
 vi.mock('../../services/orderService', () => ({
   getOrder: vi.fn(),
   getOrderStatus: vi.fn(),
+  getOrderTimeline: vi.fn(),
 }));
 
 vi.mock('../../services/reviewService', () => ({
@@ -62,6 +63,36 @@ describe('PublicOrderStatusPage', () => {
       status: 'READY',
       estimatedTime: 18,
     });
+    orderService.getOrderTimeline.mockResolvedValue([
+      {
+        status: 'PENDING',
+        label: 'Placed',
+        description: 'The kitchen has received your order.',
+        state: 'completed',
+        timestamp: '2026-07-10T10:00:00Z',
+      },
+      {
+        status: 'PREPARING',
+        label: 'Preparing',
+        description: 'Your food is being prepared.',
+        state: 'completed',
+        timestamp: null,
+      },
+      {
+        status: 'READY',
+        label: 'Ready',
+        description: 'Your order is ready for service.',
+        state: 'current',
+        timestamp: '2026-07-10T10:15:00Z',
+      },
+      {
+        status: 'SERVED',
+        label: 'Served',
+        description: 'Your order has been served.',
+        state: 'upcoming',
+        timestamp: null,
+      },
+    ]);
   });
 
   it('shows order details with add-more and bill actions', async () => {
@@ -81,6 +112,19 @@ describe('PublicOrderStatusPage', () => {
     expect(screen.getByTestId('location')).toHaveTextContent('/r/cafe/menu?tableId=4');
   });
 
+  it('manually refreshes order status', async () => {
+    renderOrderStatus();
+
+    expect(await screen.findByRole('heading', { name: 'ready' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh order' }));
+
+    await waitFor(() => {
+      expect(orderService.getOrder).toHaveBeenCalledTimes(2);
+      expect(orderService.getOrderStatus).toHaveBeenCalledTimes(2);
+      expect(orderService.getOrderTimeline).toHaveBeenCalledTimes(2);
+    });
+  });
+
   it('submits reviews once the order is served', async () => {
     const { toast } = await import('react-toastify');
     orderService.getOrder.mockResolvedValue({ ...activeOrder, status: 'SERVED' });
@@ -89,6 +133,36 @@ describe('PublicOrderStatusPage', () => {
       status: 'SERVED',
       estimatedTime: 18,
     });
+    orderService.getOrderTimeline.mockResolvedValue([
+      {
+        status: 'PENDING',
+        label: 'Placed',
+        description: 'The kitchen has received your order.',
+        state: 'completed',
+        timestamp: '2026-07-10T10:00:00Z',
+      },
+      {
+        status: 'PREPARING',
+        label: 'Preparing',
+        description: 'Your food is being prepared.',
+        state: 'completed',
+        timestamp: null,
+      },
+      {
+        status: 'READY',
+        label: 'Ready',
+        description: 'Your order is ready for service.',
+        state: 'completed',
+        timestamp: null,
+      },
+      {
+        status: 'SERVED',
+        label: 'Served',
+        description: 'Your order has been served.',
+        state: 'current',
+        timestamp: '2026-07-10T10:25:00Z',
+      },
+    ]);
     reviewService.submitReview.mockResolvedValue({});
     renderOrderStatus();
 

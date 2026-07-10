@@ -4,6 +4,8 @@ import com.restrobuild.common.ApiResponse;
 import com.restrobuild.table.dto.QrValidationResponse;
 import com.restrobuild.table.dto.TableResponse;
 import com.restrobuild.table.service.RestaurantTableService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -34,6 +37,16 @@ public class QrController {
     public ResponseEntity<ApiResponse<TableResponse>> regenerateQr(@PathVariable Long tableId) {
         TableResponse response = tableService.regenerateQr(tableId);
         return ResponseEntity.ok(ApiResponse.success("QR code regenerated successfully.", response));
+    }
+
+    @GetMapping("/api/qr/{tableId}")
+    @PreAuthorize("hasAuthority('ROLE_OWNER')")
+    public ResponseEntity<Void> downloadQr(@PathVariable Long tableId) {
+        URI qrImageUri = URI.create(tableService.getQrImageUrl(tableId, 512));
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(qrImageUri)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"table-" + tableId + "-qr.png\"")
+                .build();
     }
 
     @GetMapping("/api/public/qr/{tableId}")

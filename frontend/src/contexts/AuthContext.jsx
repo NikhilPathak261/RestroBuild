@@ -11,8 +11,7 @@ export function AuthProvider({ children }) {
   const isAuthenticated = Boolean(accessToken);
 
   async function signIn(credentials) {
-    const response = await authService.login(credentials);
-    const auth = response.data;
+    const auth = await authService.login(credentials);
 
     storeAuthSession(auth);
 

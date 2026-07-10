@@ -43,10 +43,16 @@ describe('OrdersPage', () => {
     render(<OrdersPage />);
 
     expect(await screen.findByText('#24')).toBeInTheDocument();
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'PENDING' } });
+    fireEvent.change(screen.getByLabelText('Filter by status'), { target: { value: 'PENDING' } });
+    fireEvent.change(screen.getByLabelText('Filter by table number'), { target: { value: '3' } });
+    fireEvent.change(screen.getByLabelText('Filter by order date'), { target: { value: '2026-07-10' } });
 
     await waitFor(() => {
-      expect(orderService.getRestaurantOrders).toHaveBeenCalledWith('PENDING');
+      expect(orderService.getRestaurantOrders).toHaveBeenCalledWith({
+        status: 'PENDING',
+        tableNumber: '3',
+        date: '2026-07-10',
+      });
     });
 
     fireEvent.click(screen.getByRole('button', { name: 'Prepare' }));
@@ -54,5 +60,44 @@ describe('OrdersPage', () => {
       expect(orderService.markPreparing).toHaveBeenCalledWith(24);
     });
     expect(toast.success).toHaveBeenCalledWith('Order marked preparing.');
+  });
+
+  it('clears owner order filters', async () => {
+    render(<OrdersPage />);
+
+    expect(await screen.findByText('#24')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Filter by status'), { target: { value: 'READY' } });
+    fireEvent.change(screen.getByLabelText('Filter by table number'), { target: { value: '8' } });
+    fireEvent.change(screen.getByLabelText('Filter by order date'), { target: { value: '2026-07-11' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
+
+    await waitFor(() => {
+      expect(orderService.getRestaurantOrders).toHaveBeenCalledWith({ status: '', tableNumber: '', date: '' });
+    });
+  });
+
+  it('refreshes owner orders with the active filters', async () => {
+    render(<OrdersPage />);
+
+    expect(await screen.findByText('#24')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Filter by status'), { target: { value: 'PENDING' } });
+
+    await waitFor(() => {
+      expect(orderService.getRestaurantOrders).toHaveBeenCalledWith({
+        status: 'PENDING',
+        tableNumber: '',
+        date: '',
+      });
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh orders' }));
+
+    await waitFor(() => {
+      expect(orderService.getRestaurantOrders).toHaveBeenLastCalledWith({
+        status: 'PENDING',
+        tableNumber: '',
+        date: '',
+      });
+    });
   });
 });

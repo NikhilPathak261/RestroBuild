@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import * as analyticsService from '../../services/analyticsService';
 import { getApiErrorMessage } from '../../utils/apiError';
@@ -12,33 +12,35 @@ function AnalyticsPage() {
   const [ratings, setRatings] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    async function loadAnalytics() {
-      try {
-        const [summaryResponse, dailyResponse, topResponse, bottomResponse, categoryResponse, ratingsResponse] = await Promise.all([
-          analyticsService.getSummary(),
-          analyticsService.getDailyRevenue(),
-          analyticsService.getTopMenuItems(),
-          analyticsService.getBottomMenuItems(),
-          analyticsService.getCategoryStats(),
-          analyticsService.getRatingsSummary(),
-        ]);
+  const loadAnalytics = useCallback(async () => {
+    setIsLoading(true);
 
-        setSummary(summaryResponse);
-        setDailyRevenue(dailyResponse);
-        setTopItems(topResponse);
-        setBottomItems(bottomResponse);
-        setCategoryStats(categoryResponse);
-        setRatings(ratingsResponse);
-      } catch (error) {
-        toast.error(getApiErrorMessage(error, 'Failed to load analytics.'));
-      } finally {
-        setIsLoading(false);
-      }
+    try {
+      const [summaryResponse, dailyResponse, topResponse, bottomResponse, categoryResponse, ratingsResponse] = await Promise.all([
+        analyticsService.getSummary(),
+        analyticsService.getDailyRevenue(),
+        analyticsService.getTopMenuItems(),
+        analyticsService.getBottomMenuItems(),
+        analyticsService.getCategoryStats(),
+        analyticsService.getRatingsSummary(),
+      ]);
+
+      setSummary(summaryResponse);
+      setDailyRevenue(dailyResponse);
+      setTopItems(topResponse);
+      setBottomItems(bottomResponse);
+      setCategoryStats(categoryResponse);
+      setRatings(ratingsResponse);
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, 'Failed to load analytics.'));
+    } finally {
+      setIsLoading(false);
     }
-
-    loadAnalytics();
   }, []);
+
+  useEffect(() => {
+    loadAnalytics();
+  }, [loadAnalytics]);
 
   if (isLoading) {
     return <section className="empty-state">Loading analytics...</section>;
@@ -49,6 +51,9 @@ function AnalyticsPage() {
       <div>
         <p className="eyebrow">Analytics</p>
         <h1>Business performance</h1>
+        <button className="ghost-button inline" type="button" onClick={loadAnalytics} disabled={isLoading}>
+          {isLoading ? 'Refreshing...' : 'Refresh analytics'}
+        </button>
       </div>
 
       <div className="metric-grid">
@@ -62,7 +67,7 @@ function AnalyticsPage() {
         </article>
         <article className="metric-card">
           <span>Total Revenue</span>
-          <strong>₹{summary?.totalRevenue ?? 0}</strong>
+          <strong>Rs. {summary?.totalRevenue ?? 0}</strong>
         </article>
         <article className="metric-card">
           <span>Average Rating</span>
@@ -71,7 +76,7 @@ function AnalyticsPage() {
       </div>
 
       <div className="analytics-grid">
-        <AnalyticsList title="Daily Revenue" items={dailyRevenue} valueKey="revenue" labelKey="label" prefix="₹" />
+        <AnalyticsList title="Daily Revenue" items={dailyRevenue} valueKey="revenue" labelKey="label" prefix="Rs. " />
         <AnalyticsList title="Most Ordered Dishes" items={topItems} valueKey="quantity" labelKey="menuItemName" />
         <AnalyticsList title="Least Ordered Dishes" items={bottomItems} valueKey="quantity" labelKey="menuItemName" />
         <AnalyticsList title="Category Statistics" items={categoryStats} valueKey="quantity" labelKey="categoryName" />

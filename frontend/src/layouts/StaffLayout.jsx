@@ -12,6 +12,7 @@ function StaffLayout({ role }) {
       ]
     : [
         { to: '/waiter/ready', label: 'Ready Orders' },
+        { to: '/waiter/served', label: 'Served Orders' },
       ];
 
   function handleLogout() {

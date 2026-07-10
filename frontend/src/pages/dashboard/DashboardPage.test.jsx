@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as analyticsService from '../../services/analyticsService';
 import * as orderService from '../../services/orderService';
@@ -51,5 +51,17 @@ describe('DashboardPage', () => {
     expect(screen.getByText('#42')).toBeInTheDocument();
     expect(screen.getByText('READY')).toBeInTheDocument();
     await waitFor(() => expect(orderService.getRestaurantOrders).toHaveBeenCalledWith());
+  });
+
+  it('manually refreshes dashboard data', async () => {
+    render(<DashboardPage />);
+
+    expect(await screen.findByText('#42')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh dashboard' }));
+
+    await waitFor(() => {
+      expect(analyticsService.getSummary).toHaveBeenCalledTimes(2);
+      expect(orderService.getRestaurantOrders).toHaveBeenCalledTimes(2);
+    });
   });
 });

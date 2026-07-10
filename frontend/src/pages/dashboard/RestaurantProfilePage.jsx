@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import * as restaurantService from '../../services/restaurantService';
+import * as uploadService from '../../services/uploadService';
 import { getApiErrorMessage } from '../../utils/apiError';
 
 const emptyForm = {
@@ -19,6 +20,7 @@ function RestaurantProfilePage() {
   const [restaurantId, setRestaurantId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadingField, setUploadingField] = useState('');
 
   useEffect(() => {
     let isMounted = true;
@@ -62,6 +64,24 @@ function RestaurantProfilePage() {
 
   function handleChange(event) {
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+  }
+
+  async function handleMediaUpload(fieldName, file) {
+    if (!file) {
+      return;
+    }
+
+    setUploadingField(fieldName);
+
+    try {
+      const response = await uploadService.uploadMedia(file);
+      setForm((current) => ({ ...current, [fieldName]: response.url }));
+      toast.success('Image uploaded.');
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, 'Failed to upload image.'));
+    } finally {
+      setUploadingField('');
+    }
   }
 
   async function handleSubmit(event) {
@@ -147,6 +167,28 @@ function RestaurantProfilePage() {
           <label>
             Cover image URL
             <input name="coverImageUrl" value={form.coverImageUrl} onChange={handleChange} placeholder="https://..." maxLength={1000} />
+          </label>
+        </div>
+
+        <div className="form-grid">
+          <label>
+            Upload logo
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(event) => handleMediaUpload('logoUrl', event.target.files?.[0])}
+            />
+            {uploadingField === 'logoUrl' && <span className="form-hint">Uploading logo...</span>}
+          </label>
+
+          <label>
+            Upload cover image
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(event) => handleMediaUpload('coverImageUrl', event.target.files?.[0])}
+            />
+            {uploadingField === 'coverImageUrl' && <span className="form-hint">Uploading cover...</span>}
           </label>
         </div>
 

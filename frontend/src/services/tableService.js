@@ -30,6 +30,10 @@ export async function regenerateQr(tableId) {
   return response.data;
 }
 
+export function getQrDownloadUrl(tableId) {
+  return `${apiClient.defaults.baseURL}/qr/${tableId}`;
+}
+
 export async function validateQr(tableId) {
   const response = await apiClient.get(`/public/qr/${tableId}`);
   return response.data;

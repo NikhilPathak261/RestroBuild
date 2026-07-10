@@ -149,6 +149,9 @@ function CategoryManagementPage() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
+            <button className="ghost-button inline" type="button" onClick={loadCategories} disabled={isLoading}>
+              {isLoading ? 'Refreshing...' : 'Refresh categories'}
+            </button>
           </div>
 
           {isLoading ? (

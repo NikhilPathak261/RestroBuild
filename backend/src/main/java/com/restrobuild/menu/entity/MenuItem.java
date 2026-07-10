@@ -15,6 +15,8 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -52,9 +54,13 @@ public class MenuItem {
     private FoodType foodType;
 
     @Column(name = "spicy_level", nullable = false)
+    @Min(0)
+    @Max(3)
     private Integer spicyLevel;
 
     @Column(name = "sweet_level", nullable = false)
+    @Min(0)
+    @Max(3)
     private Integer sweetLevel;
 
     @Column(name = "preparation_time", nullable = false)

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { ErrorState, LoadingState } from '../../components/PageState';
@@ -12,49 +12,47 @@ function PublicOrderStatusPage() {
   const [searchParams] = useSearchParams();
   const [order, setOrder] = useState(null);
   const [orderStatus, setOrderStatus] = useState(null);
+  const [timeline, setTimeline] = useState([]);
   const [reviewForms, setReviewForms] = useState({});
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    let isMounted = true;
+  const loadOrder = useCallback(async () => {
+    setIsRefreshing(true);
+    setError('');
 
-    async function loadOrder() {
-      try {
-        const [orderResponse, statusResponse] = await Promise.all([
-          orderService.getOrder(orderId),
-          orderService.getOrderStatus(orderId),
-        ]);
-        if (isMounted) {
-          setOrder(orderResponse);
-          setOrderStatus(statusResponse);
-        }
-      } catch {
-        if (isMounted) {
-          setError('Order not found.');
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
+    try {
+      const [orderResponse, statusResponse, timelineResponse] = await Promise.all([
+        orderService.getOrder(orderId),
+        orderService.getOrderStatus(orderId),
+        orderService.getOrderTimeline(orderId).catch(() => []),
+      ]);
+      setOrder(orderResponse);
+      setOrderStatus(statusResponse);
+      setTimeline(resolveTimeline(timelineResponse, statusResponse?.status || orderResponse.status));
+    } catch {
+      setError('Order not found.');
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
     }
-
-    loadOrder();
-
-    return () => {
-      isMounted = false;
-    };
   }, [orderId]);
+
+  useEffect(() => {
+    loadOrder();
+  }, [loadOrder]);
 
   useEffect(() => {
     return subscribeToOrder(orderId, () => {
       Promise.all([
         orderService.getOrder(orderId),
         orderService.getOrderStatus(orderId),
-      ]).then(([orderResponse, statusResponse]) => {
+        orderService.getOrderTimeline(orderId).catch(() => []),
+      ]).then(([orderResponse, statusResponse, timelineResponse]) => {
         setOrder(orderResponse);
         setOrderStatus(statusResponse);
+        setTimeline(resolveTimeline(timelineResponse, statusResponse?.status || orderResponse.status));
       });
     });
   }, [orderId]);
@@ -99,7 +97,7 @@ function PublicOrderStatusPage() {
   const billPath = tableId ? `/r/${restaurantSlug}/bill/${order.id}?tableId=${tableId}` : `/r/${restaurantSlug}/bill/${order.id}`;
   const canAddMoreItems = ['PENDING', 'PREPARING', 'READY'].includes(order.status);
   const currentStatus = orderStatus?.status || order.status;
-  const timelineSteps = getTimelineSteps(currentStatus);
+  const timelineSteps = resolveTimeline(timeline, currentStatus);
 
   return (
     <section className="public-menu">
@@ -107,6 +105,9 @@ function PublicOrderStatusPage() {
         <p className="eyebrow">Order #{order.id}</p>
         <h1>{formatOrderStatus(currentStatus)}</h1>
         <p>Table {order.tableNumber}</p>
+        <button className="ghost-button inline" type="button" onClick={loadOrder} disabled={isRefreshing}>
+          {isRefreshing ? 'Refreshing...' : 'Refresh order'}
+        </button>
       </div>
 
       <section className="list-panel">
@@ -125,6 +126,7 @@ function PublicOrderStatusPage() {
             <li className={step.state} key={step.status}>
               <span>{step.label}</span>
               <strong>{step.description}</strong>
+              {step.timestamp && <time dateTime={step.timestamp}>{formatTimelineTime(step.timestamp)}</time>}
             </li>
           ))}
         </ol>
@@ -229,6 +231,17 @@ function getTimelineSteps(currentStatus) {
 
     return { ...step, state: 'upcoming' };
   });
+}
+
+function resolveTimeline(timeline, currentStatus) {
+  return timeline?.length ? timeline : getTimelineSteps(currentStatus);
+}
+
+function formatTimelineTime(timestamp) {
+  return new Intl.DateTimeFormat(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date(timestamp));
 }
 
 function getEstimatedTimeLabel(estimatedTime, status) {

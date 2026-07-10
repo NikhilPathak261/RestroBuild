@@ -6,35 +6,40 @@ import * as categoryService from '../../services/categoryService';
 import * as menuService from '../../services/menuService';
 import * as orderService from '../../services/orderService';
 import { getApiErrorMessage } from '../../utils/apiError';
+import { clearPublicCart, loadPublicCart, savePublicCart } from '../../utils/publicCart';
 
 function PublicMenuPage() {
   const { restaurantSlug } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const tableId = searchParams.get('tableId');
+  const tableQuery = tableId ? `?tableId=${tableId}` : '';
+  const initialCart = loadPublicCart(restaurantSlug, tableId);
   const [menuItems, setMenuItems] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [cartItems, setCartItems] = useState([]);
+  const [cartItems, setCartItems] = useState(initialCart.items);
   const [activeOrders, setActiveOrders] = useState([]);
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [foodType, setFoodType] = useState('');
+  const [spicyLevel, setSpicyLevel] = useState('');
+  const [sweetLevel, setSweetLevel] = useState('');
   const [sortOrder, setSortOrder] = useState('');
-  const [specialInstructions, setSpecialInstructions] = useState('');
+  const [specialInstructions, setSpecialInstructions] = useState(initialCart.specialInstructions);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   const [isOrdering, setIsOrdering] = useState(false);
   const [error, setError] = useState('');
   const [ordersError, setOrdersError] = useState('');
-  const tableId = searchParams.get('tableId');
-  const tableQuery = tableId ? `?tableId=${tableId}` : '';
-
   const filteredItems = useMemo(() => {
     const keyword = search.trim().toLowerCase();
     const items = menuItems.filter((item) => {
       const matchesSearch = !keyword || item.name.toLowerCase().includes(keyword);
       const matchesCategory = !categoryId || String(item.categoryId) === categoryId;
       const matchesFoodType = !foodType || item.foodType === foodType;
-      return matchesSearch && matchesCategory && matchesFoodType;
+      const matchesSpicyLevel = !spicyLevel || String(item.spicyLevel ?? 0) === spicyLevel;
+      const matchesSweetLevel = !sweetLevel || String(item.sweetLevel ?? 0) === sweetLevel;
+      return matchesSearch && matchesCategory && matchesFoodType && matchesSpicyLevel && matchesSweetLevel;
     });
 
     return [...items].sort((first, second) => {
@@ -48,7 +53,7 @@ function PublicMenuPage() {
 
       return first.name.localeCompare(second.name);
     });
-  }, [categoryId, foodType, menuItems, search, sortOrder]);
+  }, [categoryId, foodType, menuItems, search, sortOrder, spicyLevel, sweetLevel]);
 
   const cartTotal = useMemo(
     () => cartItems.reduce((total, item) => total + Number(item.price) * item.quantity, 0),
@@ -113,6 +118,10 @@ function PublicMenuPage() {
     loadCurrentTableOrders();
   }, [loadCurrentTableOrders]);
 
+  useEffect(() => {
+    savePublicCart(restaurantSlug, tableId, { items: cartItems, specialInstructions });
+  }, [cartItems, restaurantSlug, specialInstructions, tableId]);
+
   if (isLoading) {
     return <LoadingState label="Loading menu..." />;
   }
@@ -167,6 +176,7 @@ function PublicMenuPage() {
       toast.success('Order placed.');
       setCartItems([]);
       setSpecialInstructions('');
+      clearPublicCart(restaurantSlug, tableId);
       navigate(`/r/${restaurantSlug}/orders/${response.id}?tableId=${tableId}`);
     } catch (orderError) {
       toast.error(getApiErrorMessage(orderError, 'Failed to place order.'));
@@ -248,6 +258,22 @@ function PublicMenuPage() {
           <option value="VEG">Veg</option>
           <option value="NON_VEG">Non-veg</option>
         </select>
+        <select aria-label="Filter by spicy level" value={spicyLevel} onChange={(event) => setSpicyLevel(event.target.value)}>
+          <option value="">Any spice</option>
+          {[0, 1, 2, 3].map((level) => (
+            <option key={level} value={level}>
+              Spice {level}
+            </option>
+          ))}
+        </select>
+        <select aria-label="Filter by sweet level" value={sweetLevel} onChange={(event) => setSweetLevel(event.target.value)}>
+          <option value="">Any sweetness</option>
+          {[0, 1, 2, 3].map((level) => (
+            <option key={level} value={level}>
+              Sweet {level}
+            </option>
+          ))}
+        </select>
         <select aria-label="Sort menu" value={sortOrder} onChange={(event) => setSortOrder(event.target.value)}>
           <option value="">Sort by name</option>
           <option value="PRICE_ASC">Price low to high</option>
@@ -293,6 +319,9 @@ function PublicMenuPage() {
         <button type="button" onClick={placeCartOrder} disabled={isOrdering || cartItems.length === 0}>
           {isOrdering ? 'Placing order...' : 'Place order'}
         </button>
+        <Link className="ghost-button inline" to={`/r/${restaurantSlug}/cart${tableQuery}`}>
+          Review cart
+        </Link>
       </section>
 
       {filteredItems.length === 0 ? (
@@ -307,6 +336,7 @@ function PublicMenuPage() {
                 <h2>{item.name}</h2>
                 <p>{item.description}</p>
                 <p>{formatFoodType(item.foodType)} - {item.preparationTime ?? 0} min</p>
+                <p>Spice {item.spicyLevel ?? 0}/3 - Sweet {item.sweetLevel ?? 0}/3</p>
                 <strong>Rs. {item.price}</strong>
                 <Link className="ghost-button inline" to={`/r/${restaurantSlug}/menu/${item.id}${tableQuery}`}>
                   View details

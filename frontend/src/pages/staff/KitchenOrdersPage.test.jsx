@@ -66,4 +66,15 @@ describe('KitchenOrdersPage', () => {
     });
     expect(toast.success).toHaveBeenCalledWith('Order marked ready.');
   });
+
+  it('manually refreshes kitchen orders', async () => {
+    render(<KitchenOrdersPage status="PENDING" />);
+
+    expect(await screen.findByText('#12')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh orders' }));
+
+    await waitFor(() => {
+      expect(orderService.getKitchenPendingOrders).toHaveBeenCalledTimes(2);
+    });
+  });
 });

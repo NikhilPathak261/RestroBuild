@@ -17,6 +17,7 @@ import TableManagementPage from '../pages/dashboard/TableManagementPage';
 import WebsiteSettingsPage from '../pages/dashboard/WebsiteSettingsPage';
 import PublicAboutPage from '../pages/public/PublicAboutPage';
 import PublicBillPage from '../pages/public/PublicBillPage';
+import PublicCartPage from '../pages/public/PublicCartPage';
 import PublicContactPage from '../pages/public/PublicContactPage';
 import PublicDishDetailsPage from '../pages/public/PublicDishDetailsPage';
 import PublicHomePage from '../pages/public/PublicHomePage';
@@ -63,6 +64,7 @@ function AppRoutes() {
       <Route element={<ProtectedRoute allowedRoles={['ROLE_WAITER']} />}>
         <Route path="/waiter" element={<StaffLayout role="waiter" />}>
           <Route path="ready" element={<WaiterOrdersPage />} />
+          <Route path="served" element={<WaiterOrdersPage status="SERVED" />} />
           <Route index element={<Navigate to="/waiter/ready" replace />} />
         </Route>
       </Route>
@@ -72,6 +74,7 @@ function AppRoutes() {
         <Route path="about" element={<PublicAboutPage />} />
         <Route path="contact" element={<PublicContactPage />} />
         <Route path="menu" element={<PublicMenuPage />} />
+        <Route path="cart" element={<PublicCartPage />} />
         <Route path="menu/:menuItemId" element={<PublicDishDetailsPage />} />
         <Route path="orders/:orderId" element={<PublicOrderStatusPage />} />
         <Route path="bill/:orderId" element={<PublicBillPage />} />

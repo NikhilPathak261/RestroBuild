@@ -8,35 +8,35 @@ const statusOptions = ['', 'PENDING', 'PREPARING', 'READY', 'SERVED', 'CANCELLED
 
 function OrdersPage() {
   const [orders, setOrders] = useState([]);
-  const [status, setStatus] = useState('');
+  const [filters, setFilters] = useState({ status: '', tableNumber: '', date: '' });
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadOrders = useCallback(async (nextStatus = status) => {
+  const loadOrders = useCallback(async (nextFilters = filters) => {
     setIsLoading(true);
 
     try {
-      const response = await orderService.getRestaurantOrders(nextStatus);
+      const response = await orderService.getRestaurantOrders(nextFilters);
       setOrders(response);
     } catch (error) {
       toast.error(getApiErrorMessage(error, 'Failed to load orders.'));
     } finally {
       setIsLoading(false);
     }
-  }, [status]);
+  }, [filters]);
 
   useEffect(() => {
-    loadOrders(status);
-  }, [loadOrders, status]);
+    loadOrders(filters);
+  }, [loadOrders, filters]);
 
   useEffect(() => {
-    return subscribeToOwnerOrders(() => loadOrders(status));
-  }, [loadOrders, status]);
+    return subscribeToOwnerOrders(() => loadOrders(filters));
+  }, [filters, loadOrders]);
 
   async function runAction(action, successMessage) {
     try {
       await action();
       toast.success(successMessage);
-      await loadOrders(status);
+      await loadOrders(filters);
     } catch (error) {
       toast.error(getApiErrorMessage(error, 'Failed to update order.'));
     }
@@ -52,13 +52,37 @@ function OrdersPage() {
       <section className="list-panel">
         <div className="list-header">
           <h2>Order List</h2>
-          <select value={status} onChange={(event) => setStatus(event.target.value)}>
+          <select
+            aria-label="Filter by status"
+            value={filters.status}
+            onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value }))}
+          >
             {statusOptions.map((option) => (
               <option key={option || 'ALL'} value={option}>
                 {option || 'All statuses'}
               </option>
             ))}
           </select>
+          <input
+            aria-label="Filter by table number"
+            min="1"
+            placeholder="Table"
+            type="number"
+            value={filters.tableNumber}
+            onChange={(event) => setFilters((current) => ({ ...current, tableNumber: event.target.value }))}
+          />
+          <input
+            aria-label="Filter by order date"
+            type="date"
+            value={filters.date}
+            onChange={(event) => setFilters((current) => ({ ...current, date: event.target.value }))}
+          />
+          <button className="ghost-button inline" type="button" onClick={() => setFilters({ status: '', tableNumber: '', date: '' })}>
+            Clear filters
+          </button>
+          <button className="ghost-button inline" type="button" onClick={() => loadOrders(filters)} disabled={isLoading}>
+            {isLoading ? 'Refreshing...' : 'Refresh orders'}
+          </button>
         </div>
 
         {isLoading ? (
@@ -84,7 +108,7 @@ function OrdersPage() {
                     <td>#{order.id}</td>
                     <td>{order.tableNumber}</td>
                     <td>{order.items.map((item) => `${item.quantity}x ${item.menuItemName}`).join(', ')}</td>
-                    <td>₹{order.totalAmount}</td>
+                    <td>Rs. {order.totalAmount}</td>
                     <td>{order.status}</td>
                     <td>
                       <div className="table-actions">

@@ -50,4 +50,21 @@ describe('ReviewManagementPage', () => {
     });
     expect(toast.success).toHaveBeenCalledWith('Review hidden.');
   });
+
+  it('refreshes reviews with the active rating filter', async () => {
+    render(<ReviewManagementPage />);
+
+    expect(await screen.findByText('Paneer Tikka')).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: '4' } });
+
+    await waitFor(() => {
+      expect(reviewService.getReviews).toHaveBeenCalledWith({ rating: '4' });
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh reviews' }));
+
+    await waitFor(() => {
+      expect(reviewService.getReviews).toHaveBeenLastCalledWith({ rating: '4' });
+    });
+  });
 });

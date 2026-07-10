@@ -15,6 +15,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -113,6 +115,17 @@ public class RestaurantTableService {
         RestaurantTable table = getOwnerTable(tableId, restaurant.getId());
         assignQrUrl(table);
         return tableMapper.toResponse(table);
+    }
+
+    @Transactional(readOnly = true)
+    public String getQrImageUrl(Long tableId, int size) {
+        Restaurant restaurant = authenticatedUserService.getAuthenticatedOwnerRestaurant();
+        RestaurantTable table = getOwnerTable(tableId, restaurant.getId());
+        String qrTargetUrl = table.getQrCodeUrl() == null
+                ? frontendBaseUrl + "/r/" + table.getRestaurant().getSlug() + "?tableId=" + table.getId()
+                : table.getQrCodeUrl();
+        String encodedData = URLEncoder.encode(qrTargetUrl, StandardCharsets.UTF_8);
+        return "https://api.qrserver.com/v1/create-qr-code/?size=" + size + "x" + size + "&data=" + encodedData;
     }
 
     @Transactional(readOnly = true)

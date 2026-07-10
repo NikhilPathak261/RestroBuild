@@ -50,6 +50,9 @@ function KitchenOrdersPage({ status }) {
       <div>
         <p className="eyebrow">Kitchen</p>
         <h1>{status} orders</h1>
+        <button className="ghost-button inline" type="button" onClick={loadOrders} disabled={isLoading}>
+          {isLoading ? 'Refreshing...' : 'Refresh orders'}
+        </button>
       </div>
 
       <section className="list-panel">

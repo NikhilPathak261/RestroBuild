@@ -35,7 +35,7 @@ apiClient.interceptors.request.use((config) => {
 });
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => unwrapApiResponse(response),
   async (error) => {
     const originalRequest = error.config;
 
@@ -56,6 +56,17 @@ apiClient.interceptors.response.use(
     }
   },
 );
+
+export function unwrapApiResponse(response) {
+  if (!response?.data || typeof response.data !== 'object' || !('success' in response.data)) {
+    return response;
+  }
+
+  return {
+    ...response,
+    data: response.data.data ?? null,
+  };
+}
 
 function shouldRefresh(error, originalRequest) {
   return Boolean(

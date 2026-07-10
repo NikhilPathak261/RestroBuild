@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { ErrorState, LoadingState } from '../../components/PageState';
 import * as orderService from '../../services/orderService';
@@ -10,39 +10,32 @@ function PublicBillPage() {
   const [order, setOrder] = useState(null);
   const [orderStatus, setOrderStatus] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState('');
   const tableId = searchParams.get('tableId');
 
-  useEffect(() => {
-    let isMounted = true;
+  const loadOrder = useCallback(async () => {
+    setIsRefreshing(true);
+    setError('');
 
-    async function loadOrder() {
-      try {
-        const [orderResponse, statusResponse] = await Promise.all([
-          orderService.getOrder(orderId),
-          orderService.getOrderStatus(orderId),
-        ]);
-        if (isMounted) {
-          setOrder(orderResponse);
-          setOrderStatus(statusResponse);
-        }
-      } catch {
-        if (isMounted) {
-          setError('Bill not found.');
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      }
+    try {
+      const [orderResponse, statusResponse] = await Promise.all([
+        orderService.getOrder(orderId),
+        orderService.getOrderStatus(orderId),
+      ]);
+      setOrder(orderResponse);
+      setOrderStatus(statusResponse);
+    } catch {
+      setError('Bill not found.');
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
     }
-
-    loadOrder();
-
-    return () => {
-      isMounted = false;
-    };
   }, [orderId]);
+
+  useEffect(() => {
+    loadOrder();
+  }, [loadOrder]);
 
   useEffect(() => {
     return subscribeToOrder(orderId, () => {
@@ -77,6 +70,9 @@ function PublicBillPage() {
         <p className="eyebrow">Bill Summary</p>
         <h1>Order #{order.id}</h1>
         <p>Table {order.tableNumber} - {formatOrderStatus(currentStatus)}</p>
+        <button className="ghost-button inline" type="button" onClick={loadOrder} disabled={isRefreshing}>
+          {isRefreshing ? 'Refreshing...' : 'Refresh bill'}
+        </button>
       </div>
 
       <section className="list-panel bill-summary-grid">

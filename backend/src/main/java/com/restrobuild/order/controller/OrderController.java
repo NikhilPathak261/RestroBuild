@@ -3,6 +3,7 @@ package com.restrobuild.order.controller;
 import com.restrobuild.common.ApiResponse;
 import com.restrobuild.order.dto.OrderResponse;
 import com.restrobuild.order.dto.OrderStatusResponse;
+import com.restrobuild.order.dto.OrderTimelineStepResponse;
 import com.restrobuild.order.dto.PlaceOrderRequest;
 import com.restrobuild.order.entity.OrderStatus;
 import com.restrobuild.order.service.OrderService;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -51,9 +53,11 @@ public class OrderController {
     @GetMapping("/api/orders")
     @PreAuthorize("hasAuthority('ROLE_OWNER')")
     public ResponseEntity<ApiResponse<List<OrderResponse>>> getRestaurantOrders(
-            @RequestParam(required = false) OrderStatus status
+            @RequestParam(required = false) OrderStatus status,
+            @RequestParam(required = false) Integer tableNumber,
+            @RequestParam(required = false) LocalDate date
     ) {
-        List<OrderResponse> response = orderService.getRestaurantOrders(status);
+        List<OrderResponse> response = orderService.getRestaurantOrders(status, tableNumber, date);
         return ResponseEntity.ok(ApiResponse.success("Restaurant orders fetched successfully.", response));
     }
 
@@ -68,5 +72,11 @@ public class OrderController {
     public ResponseEntity<ApiResponse<OrderStatusResponse>> getOrderStatus(@PathVariable Long orderId) {
         OrderStatusResponse response = orderService.getOrderStatus(orderId);
         return ResponseEntity.ok(ApiResponse.success("Order status fetched successfully.", response));
+    }
+
+    @GetMapping("/api/orders/{orderId}/timeline")
+    public ResponseEntity<ApiResponse<List<OrderTimelineStepResponse>>> getOrderTimeline(@PathVariable Long orderId) {
+        List<OrderTimelineStepResponse> response = orderService.getOrderTimeline(orderId);
+        return ResponseEntity.ok(ApiResponse.success("Order timeline fetched successfully.", response));
     }
 }
