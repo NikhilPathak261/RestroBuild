@@ -4,10 +4,17 @@ import com.restrobuild.order.dto.OrderItemResponse;
 import com.restrobuild.order.dto.OrderResponse;
 import com.restrobuild.order.entity.CustomerOrder;
 import com.restrobuild.order.entity.OrderItem;
+import com.restrobuild.review.repository.ReviewRepository;
 import org.springframework.stereotype.Component;
 
 @Component
 public class OrderMapper {
+
+    private final ReviewRepository reviewRepository;
+
+    public OrderMapper(ReviewRepository reviewRepository) {
+        this.reviewRepository = reviewRepository;
+    }
 
     public OrderResponse toResponse(CustomerOrder order) {
         return new OrderResponse(
@@ -29,7 +36,8 @@ public class OrderMapper {
                 item.getMenuItem().getName(),
                 item.getQuantity(),
                 item.getPrice(),
-                item.getSubtotal()
+                item.getSubtotal(),
+                item.getId() != null && reviewRepository.existsByOrderItemId(item.getId())
         );
     }
 }

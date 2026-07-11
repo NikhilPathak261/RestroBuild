@@ -33,7 +33,7 @@ const activeOrder = {
   totalAmount: 650,
   specialInstructions: 'No onion',
   items: [
-    { id: 1, menuItemName: 'Paneer Tikka', quantity: 2, subtotal: 650 },
+    { id: 1, menuItemName: 'Paneer Tikka', quantity: 2, subtotal: 650, reviewed: false },
   ],
 };
 
@@ -180,5 +180,27 @@ describe('PublicOrderStatusPage', () => {
       });
     });
     expect(toast.success).toHaveBeenCalledWith('Review submitted.');
+    expect(await screen.findByText('Review submitted. Thank you.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Submitted' })).toBeDisabled();
+  });
+
+  it('shows already-reviewed served items as submitted', async () => {
+    orderService.getOrder.mockResolvedValue({
+      ...activeOrder,
+      status: 'SERVED',
+      items: [
+        { id: 1, menuItemName: 'Paneer Tikka', quantity: 2, subtotal: 650, reviewed: true },
+      ],
+    });
+    orderService.getOrderStatus.mockResolvedValue({
+      orderId: 55,
+      status: 'SERVED',
+      estimatedTime: 18,
+    });
+
+    renderOrderStatus();
+
+    expect(await screen.findByText('Review submitted. Thank you.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Submitted' })).toBeDisabled();
   });
 });

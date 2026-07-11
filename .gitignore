@@ -1,6 +1,3 @@
-# Architecture documents
-arch/
-
 # Environment variables
 .env
 .env.*

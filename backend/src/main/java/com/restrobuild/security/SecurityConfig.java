@@ -47,6 +47,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/refresh").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/orders").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/reviews").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/orders/*", "/api/orders/*/status", "/api/orders/*/timeline").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/orders/table/*", "/api/orders/table/*/bill").permitAll()
                         .requestMatchers(HttpMethod.GET, "/uploads/media/**").permitAll()

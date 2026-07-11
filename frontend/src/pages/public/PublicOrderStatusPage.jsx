@@ -14,6 +14,7 @@ function PublicOrderStatusPage() {
   const [orderStatus, setOrderStatus] = useState(null);
   const [timeline, setTimeline] = useState([]);
   const [reviewForms, setReviewForms] = useState({});
+  const [submittedReviewItemIds, setSubmittedReviewItemIds] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState('');
@@ -79,6 +80,9 @@ function PublicOrderStatusPage() {
         comment: form.comment,
       });
       toast.success('Review submitted.');
+      setSubmittedReviewItemIds((current) => (
+        current.includes(orderItemId) ? current : [...current, orderItemId]
+      ));
     } catch (reviewError) {
       toast.error(getApiErrorMessage(reviewError, 'Failed to submit review.'));
     }
@@ -168,6 +172,7 @@ function PublicOrderStatusPage() {
           <div className="review-form-grid">
             {order.items.map((item) => {
               const form = reviewForms[item.id] || { rating: 5, comment: '' };
+              const isSubmitted = item.reviewed || submittedReviewItemIds.includes(item.id);
               return (
                 <form
                   className="review-mini-form"
@@ -178,9 +183,14 @@ function PublicOrderStatusPage() {
                   }}
                 >
                   <h3>{item.menuItemName}</h3>
+                  {isSubmitted && <p className="success-text">Review submitted. Thank you.</p>}
                   <label>
                     Rating
-                    <select value={form.rating} onChange={(event) => updateReviewForm(item.id, 'rating', event.target.value)}>
+                    <select
+                      value={form.rating}
+                      onChange={(event) => updateReviewForm(item.id, 'rating', event.target.value)}
+                      disabled={isSubmitted}
+                    >
                       {[5, 4, 3, 2, 1].map((value) => (
                         <option key={value} value={value}>
                           {value}
@@ -190,9 +200,16 @@ function PublicOrderStatusPage() {
                   </label>
                   <label>
                     Comment
-                    <textarea value={form.comment} onChange={(event) => updateReviewForm(item.id, 'comment', event.target.value)} rows={3} />
+                    <textarea
+                      value={form.comment}
+                      onChange={(event) => updateReviewForm(item.id, 'comment', event.target.value)}
+                      rows={3}
+                      disabled={isSubmitted}
+                    />
                   </label>
-                  <button type="submit">Submit review</button>
+                  <button type="submit" disabled={isSubmitted}>
+                    {isSubmitted ? 'Submitted' : 'Submit review'}
+                  </button>
                 </form>
               );
             })}

@@ -1,6 +1,6 @@
 # 🍽️ RestroBuild
 
-**RestroBuild** is a production-ready **Restaurant Website Builder & QR Ordering SaaS Platform** built with **Java, Spring Boot, React, and PostgreSQL**.
+**RestroBuild** is a production-ready **Restaurant Website Builder & QR Ordering SaaS Platform** built with **Java, Spring Boot, React, and MySQL**.
 
 It enables restaurant owners to create their own branded restaurant website without writing any code. Customers can scan QR codes placed on restaurant tables to browse the digital menu, place orders, track order status, and leave verified reviews.
 
@@ -77,7 +77,7 @@ It enables restaurant owners to create their own branded restaurant website with
 
 ## Database
 
-- PostgreSQL
+- MySQL
 
 ## Documentation
 
@@ -227,13 +227,15 @@ Default local URLs:
 
 Important production variables:
 
+- `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`: point the backend to the MySQL database.
+- `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_ROOT_PASSWORD`, `MYSQL_PORT`: configure the local Docker MySQL service.
 - `JWT_SECRET`: replace the development value with a strong secret.
 - `CORS_ALLOWED_ORIGINS`: set to the deployed frontend origin.
 - `FRONTEND_BASE_URL`: set to the deployed frontend URL used in QR/public links.
 - `VITE_API_BASE_URL`: set to the public backend API URL at frontend build time.
 - `VITE_WS_BASE_URL`: set to the public WebSocket URL at frontend build time.
 - `SPRING_PROFILES_ACTIVE`: use `prod` for production deployments.
-- `JPA_DDL_AUTO`: use `validate` or managed migrations for production once schema migration tooling is added.
+- `JPA_DDL_AUTO`: use `validate` or managed MySQL migrations for production once migration tooling is added.
 - `JAVA_OPTS`: optional JVM flags for the backend container, such as memory limits.
 - `LOG_LEVEL_ROOT`, `LOG_LEVEL_APP`, `LOG_LEVEL_SECURITY`: optional backend log level controls.
 
@@ -335,4 +337,4 @@ B.Tech CSE (2023–2027)
 
 Backend & Full-Stack Developer
 
-Java • Spring Boot • React • PostgreSQL
+Java • Spring Boot • React • MySQL

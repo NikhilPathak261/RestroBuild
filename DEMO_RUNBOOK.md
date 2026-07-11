@@ -16,7 +16,7 @@ cp .env.demo.example .env
 docker compose up --build
 ```
 
-If Docker is unavailable, run PostgreSQL manually, then start the backend with:
+If Docker is unavailable, run MySQL manually, then start the backend with:
 
 ```bash
 SPRING_PROFILES_ACTIVE=demo mvn spring-boot:run

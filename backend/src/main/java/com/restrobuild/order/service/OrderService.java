@@ -264,7 +264,7 @@ public class OrderService {
         CustomerOrder order = getOrderOrThrow(orderId);
         if (order.getStatus() == OrderStatus.CANCELLED) {
             return List.of(
-                    timelineStep(OrderStatus.PENDING, "Placed", "The kitchen received your order.", "completed", order.getOrderedAt()),
+                    timelineStep(OrderStatus.PENDING, "Placed", "The kitchen has received your order.", "completed", order.getOrderedAt()),
                     timelineStep(OrderStatus.CANCELLED, "Cancelled", "This order was cancelled.", "current", order.getUpdatedAt())
             );
         }

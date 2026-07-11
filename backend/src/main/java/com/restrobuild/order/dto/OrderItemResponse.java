@@ -8,6 +8,7 @@ public record OrderItemResponse(
         String menuItemName,
         Integer quantity,
         BigDecimal price,
-        BigDecimal subtotal
+        BigDecimal subtotal,
+        boolean reviewed
 ) {
 }
