@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { ErrorState, LoadingState } from '../../components/PageState';
+import * as cartService from '../../services/cartService';
 import * as orderService from '../../services/orderService';
 import { getApiErrorMessage } from '../../utils/apiError';
-import { clearPublicCart, loadPublicCart, savePublicCart } from '../../utils/publicCart';
 
 function PublicCartPage() {
   const { restaurantSlug } = useParams();
@@ -11,37 +12,82 @@ function PublicCartPage() {
   const navigate = useNavigate();
   const tableId = searchParams.get('tableId');
   const tableQuery = tableId ? `?tableId=${tableId}` : '';
-  const storedCart = loadPublicCart(restaurantSlug, tableId);
-  const [cartItems, setCartItems] = useState(storedCart.items);
-  const [specialInstructions, setSpecialInstructions] = useState(storedCart.specialInstructions);
+  const [cartItems, setCartItems] = useState([]);
+  const [cartSubtotal, setCartSubtotal] = useState(0);
+  const [specialInstructions, setSpecialInstructions] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
   const [isOrdering, setIsOrdering] = useState(false);
+  const [isUpdatingCart, setIsUpdatingCart] = useState(false);
 
-  const cartTotal = useMemo(
-    () => cartItems.reduce((total, item) => total + Number(item.price) * item.quantity, 0),
-    [cartItems],
-  );
+  const applyCart = useCallback((cart) => {
+    const items = cart?.items ?? [];
+    setCartItems(items);
+    setCartSubtotal(Number(cart?.subtotal ?? 0));
+    const firstInstruction = items.find((item) => item.specialInstructions)?.specialInstructions;
+    setSpecialInstructions(firstInstruction ?? '');
+  }, []);
 
-  function persistCart(nextItems, nextInstructions = specialInstructions) {
-    setCartItems(nextItems);
-    setSpecialInstructions(nextInstructions);
-    savePublicCart(restaurantSlug, tableId, { items: nextItems, specialInstructions: nextInstructions });
-  }
+  useEffect(() => {
+    let isMounted = true;
 
-  function updateCartQuantity(itemId, quantity) {
-    const nextItems = quantity <= 0
-      ? cartItems.filter((item) => item.id !== itemId)
-      : cartItems.map((item) => (item.id === itemId ? { ...item, quantity } : item));
-    persistCart(nextItems);
+    async function loadCart() {
+      try {
+        const cart = await cartService.getCart();
+        if (isMounted) {
+          applyCart(cart);
+        }
+      } catch {
+        if (isMounted) {
+          setError('Cart is not available right now.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadCart();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [applyCart]);
+
+  async function updateCartQuantity(item, quantity) {
+    setIsUpdatingCart(true);
+    try {
+      const cart = quantity <= 0
+        ? await cartService.removeCartItem(item.id)
+        : await cartService.updateCartItem(item.id, {
+          quantity,
+          specialInstructions: specialInstructions.trim(),
+        });
+      applyCart(cart);
+    } catch (cartError) {
+      toast.error(getApiErrorMessage(cartError, 'Failed to update cart.'));
+    } finally {
+      setIsUpdatingCart(false);
+    }
   }
 
   function updateSpecialInstructions(value) {
-    persistCart(cartItems, value);
+    setSpecialInstructions(value);
   }
 
-  function clearCart() {
-    clearPublicCart(restaurantSlug, tableId);
-    setCartItems([]);
-    setSpecialInstructions('');
+  async function clearCart() {
+    setIsUpdatingCart(true);
+    try {
+      await cartService.clearCart();
+      setCartItems([]);
+      setCartSubtotal(0);
+      setSpecialInstructions('');
+    } catch (cartError) {
+      toast.error(getApiErrorMessage(cartError, 'Failed to clear cart.'));
+    } finally {
+      setIsUpdatingCart(false);
+    }
   }
 
   async function placeCartOrder() {
@@ -58,14 +104,16 @@ function PublicCartPage() {
     setIsOrdering(true);
 
     try {
+      await syncCartInstructions();
       const response = await orderService.placeOrder({
         tableId: Number(tableId),
-        items: cartItems.map((item) => ({ menuItemId: item.id, quantity: item.quantity })),
+        items: cartItems.map((item) => ({ menuItemId: item.menuItemId, quantity: item.quantity })),
         specialInstructions: specialInstructions.trim(),
       });
       toast.success('Order placed.');
-      clearPublicCart(restaurantSlug, tableId);
+      await cartService.clearCart();
       setCartItems([]);
+      setCartSubtotal(0);
       setSpecialInstructions('');
       navigate(`/r/${restaurantSlug}/orders/${response.id}?tableId=${tableId}`);
     } catch (error) {
@@ -73,6 +121,26 @@ function PublicCartPage() {
     } finally {
       setIsOrdering(false);
     }
+  }
+
+  async function syncCartInstructions() {
+    const instruction = specialInstructions.trim();
+    await Promise.all(cartItems.map((item) => (
+      item.specialInstructions === instruction
+        ? Promise.resolve()
+        : cartService.updateCartItem(item.id, {
+          quantity: item.quantity,
+          specialInstructions: instruction,
+        })
+    )));
+  }
+
+  if (isLoading) {
+    return <LoadingState label="Loading cart..." />;
+  }
+
+  if (error) {
+    return <ErrorState title={error} message="Please return to the menu and try again." />;
   }
 
   return (
@@ -86,7 +154,7 @@ function PublicCartPage() {
       <section className="list-panel">
         <div className="list-header">
           <h2>Cart Items</h2>
-          <strong>Rs. {cartTotal}</strong>
+          <strong>Rs. {cartSubtotal}</strong>
         </div>
 
         {cartItems.length === 0 ? (
@@ -95,13 +163,13 @@ function PublicCartPage() {
           <div className="analytics-list">
             {cartItems.map((item) => (
               <div key={item.id}>
-                <span>{item.name}</span>
+                <span>{item.menuItemName}</span>
                 <div className="table-actions">
-                  <button type="button" onClick={() => updateCartQuantity(item.id, item.quantity - 1)} aria-label={`Remove one ${item.name}`}>
+                  <button type="button" onClick={() => updateCartQuantity(item, item.quantity - 1)} aria-label={`Remove one ${item.menuItemName}`} disabled={isUpdatingCart}>
                     -
                   </button>
                   <strong>{item.quantity}</strong>
-                  <button type="button" onClick={() => updateCartQuantity(item.id, item.quantity + 1)} aria-label={`Add one ${item.name}`}>
+                  <button type="button" onClick={() => updateCartQuantity(item, item.quantity + 1)} aria-label={`Add one ${item.menuItemName}`} disabled={isUpdatingCart || item.quantity >= 99}>
                     +
                   </button>
                 </div>
@@ -122,10 +190,10 @@ function PublicCartPage() {
         </label>
 
         <div className="button-row">
-          <button type="button" onClick={placeCartOrder} disabled={isOrdering || cartItems.length === 0}>
+          <button type="button" onClick={placeCartOrder} disabled={isOrdering || isUpdatingCart || cartItems.length === 0}>
             {isOrdering ? 'Placing order...' : 'Place order'}
           </button>
-          <button type="button" className="ghost-button inline" onClick={clearCart} disabled={cartItems.length === 0 && !specialInstructions}>
+          <button type="button" className="ghost-button inline" onClick={clearCart} disabled={isUpdatingCart || (cartItems.length === 0 && !specialInstructions)}>
             Clear cart
           </button>
           <Link className="ghost-button inline" to={`/r/${restaurantSlug}/menu${tableQuery}`}>

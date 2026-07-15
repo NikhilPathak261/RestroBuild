@@ -10,22 +10,22 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class RuntimeConfigurationValidatorTest {
 
-    private static final String DEVELOPMENT_JWT_SECRET = "change-this-development-secret-change-this-development-secret";
+    private static final String PLACEHOLDER_JWT_SECRET = "change-this-development-secret-change-this-development-secret";
     private static final String PRODUCTION_JWT_SECRET = "replace-with-a-long-production-secret-value";
 
     @Test
-    void allowsDevelopmentSecretOutsideProductionProfile() {
+    void allowsPlaceholderSecretOutsideProductionProfile() {
         MockEnvironment environment = new MockEnvironment();
-        RuntimeConfigurationValidator validator = new RuntimeConfigurationValidator(environment, DEVELOPMENT_JWT_SECRET, List.of("*"));
+        RuntimeConfigurationValidator validator = new RuntimeConfigurationValidator(environment, PLACEHOLDER_JWT_SECRET, List.of("*"));
 
         assertDoesNotThrow(validator::validate);
     }
 
     @Test
-    void rejectsDevelopmentSecretInProductionProfile() {
+    void rejectsPlaceholderSecretInProductionProfile() {
         MockEnvironment environment = new MockEnvironment();
         environment.setActiveProfiles("prod");
-        RuntimeConfigurationValidator validator = new RuntimeConfigurationValidator(environment, DEVELOPMENT_JWT_SECRET, List.of("https://app.example.com"));
+        RuntimeConfigurationValidator validator = new RuntimeConfigurationValidator(environment, PLACEHOLDER_JWT_SECRET, List.of("https://app.example.com"));
 
         assertThrows(IllegalStateException.class, validator::validate);
     }

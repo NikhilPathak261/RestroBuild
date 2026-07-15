@@ -162,6 +162,15 @@ public class OrderService {
         return orders.stream().map(orderMapper::toResponse).toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getRecentOrders() {
+        Restaurant restaurant = authenticatedUserService.getAuthenticatedOwnerRestaurant();
+        return orderRepository.findTop10ByRestaurantIdOrderByOrderedAtDesc(restaurant.getId())
+                .stream()
+                .map(orderMapper::toResponse)
+                .toList();
+    }
+
     @Transactional
     public void cancelOrder(Long orderId) {
         Restaurant restaurant = authenticatedUserService.getAuthenticatedOwnerRestaurant();

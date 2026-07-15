@@ -42,7 +42,6 @@ Tasks
 - Configure environment variables
 - Configure CORS
 - Configure Swagger
-- Configure Docker
 - Configure global exception handling
 - Configure logging
 - Configure project folder structure

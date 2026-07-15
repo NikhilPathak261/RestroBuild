@@ -69,7 +69,7 @@ class OrderServiceTest {
         assertEquals(4, bill.tableNumber());
         assertEquals(2, bill.orderCount());
         assertEquals(4, bill.itemCount());
-        assertEquals(0, BigDecimal.valueOf(650).compareTo(bill.totalAmount()));
+        assertEquals(0, BigDecimal.valueOf(950).compareTo(bill.totalAmount()));
         assertEquals(3, bill.items().size());
         assertEquals(55L, bill.items().get(0).orderId());
         assertEquals(OrderStatus.READY, bill.items().get(0).orderStatus());

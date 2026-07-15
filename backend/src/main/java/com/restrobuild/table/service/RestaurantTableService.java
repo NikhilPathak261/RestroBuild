@@ -2,6 +2,8 @@ package com.restrobuild.table.service;
 
 import com.restrobuild.exception.BusinessException;
 import com.restrobuild.exception.ResourceNotFoundException;
+import com.restrobuild.order.entity.OrderStatus;
+import com.restrobuild.order.repository.CustomerOrderRepository;
 import com.restrobuild.restaurant.entity.Restaurant;
 import com.restrobuild.security.AuthenticatedUserService;
 import com.restrobuild.table.dto.CreateTablesRequest;
@@ -24,17 +26,20 @@ import java.util.List;
 public class RestaurantTableService {
 
     private final RestaurantTableRepository tableRepository;
+    private final CustomerOrderRepository orderRepository;
     private final AuthenticatedUserService authenticatedUserService;
     private final TableMapper tableMapper;
     private final String frontendBaseUrl;
 
     public RestaurantTableService(
             RestaurantTableRepository tableRepository,
+            CustomerOrderRepository orderRepository,
             AuthenticatedUserService authenticatedUserService,
             TableMapper tableMapper,
             @Value("${app.frontend.base-url}") String frontendBaseUrl
     ) {
         this.tableRepository = tableRepository;
+        this.orderRepository = orderRepository;
         this.authenticatedUserService = authenticatedUserService;
         this.tableMapper = tableMapper;
         this.frontendBaseUrl = frontendBaseUrl;
@@ -95,7 +100,19 @@ public class RestaurantTableService {
     public void deleteTable(Long tableId) {
         Restaurant restaurant = authenticatedUserService.getAuthenticatedOwnerRestaurant();
         RestaurantTable table = getOwnerTable(tableId, restaurant.getId());
-        tableRepository.delete(table);
+        if (orderRepository.existsByTableIdAndStatusIn(tableId, List.of(
+                OrderStatus.PENDING,
+                OrderStatus.PREPARING,
+                OrderStatus.READY
+        ))) {
+            throw new BusinessException("Tables with active orders cannot be deleted.");
+        }
+
+        if (orderRepository.existsByTableId(tableId)) {
+            table.deactivate();
+        } else {
+            tableRepository.delete(table);
+        }
     }
 
     @Transactional

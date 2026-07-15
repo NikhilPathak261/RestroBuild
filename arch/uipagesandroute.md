@@ -428,7 +428,7 @@ Route
 
 MVP Status
 
-Implemented with search, category filtering, food-type filtering, taste-level filtering, price sorting, special instructions, an in-page order cart, and persisted standalone cart handoff.
+Implemented with search, category filtering, food-type filtering, taste-level filtering, price sorting, special instructions, an in-page server-backed order cart, and standalone cart handoff.
 
 ---
 
@@ -452,7 +452,7 @@ Route
 
 MVP Status
 
-Implemented with table-scoped persisted cart items, quantity editing, special instructions, QR-required order placement, and back-to-menu navigation.
+Implemented with server-backed cart items, anonymous cart token reuse, quantity editing, special instructions, QR-required order placement, and back-to-menu navigation.
 
 ---
 

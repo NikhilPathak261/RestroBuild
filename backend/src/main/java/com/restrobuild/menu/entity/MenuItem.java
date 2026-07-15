@@ -159,6 +159,10 @@ public class MenuItem {
         return id;
     }
 
+    public Restaurant getRestaurant() {
+        return restaurant;
+    }
+
     public Category getCategory() {
         return category;
     }

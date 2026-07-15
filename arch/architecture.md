@@ -683,10 +683,6 @@ Frontend
 
 ↓
 
-Nginx
-
-↓
-
 Spring Boot
 
 ↓
@@ -696,8 +692,6 @@ MySQL
 ↓
 
 Image Storage
-
-Application should be Docker-ready.
 
 Environment variables must be used for configuration.
 
@@ -740,12 +734,6 @@ Maven
 Documentation
 
 Swagger/OpenAPI
-
-Containerization
-
-Docker
-
----
 
 # 25. Architecture Rules
 

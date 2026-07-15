@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import * as cartService from '../../services/cartService';
 import * as categoryService from '../../services/categoryService';
 import * as menuService from '../../services/menuService';
 import * as orderService from '../../services/orderService';
@@ -21,10 +22,52 @@ vi.mock('../../services/menuService', () => ({
   getPublicMenu: vi.fn(),
 }));
 
+vi.mock('../../services/cartService', () => ({
+  getCart: vi.fn(),
+  addCartItem: vi.fn(),
+  updateCartItem: vi.fn(),
+  removeCartItem: vi.fn(),
+  clearCart: vi.fn(),
+}));
+
 vi.mock('../../services/orderService', () => ({
   getCurrentTableOrders: vi.fn(),
   placeOrder: vi.fn(),
 }));
+
+const emptyCart = {
+  cartToken: null,
+  items: [],
+  subtotal: 0,
+};
+
+const pepperoniCart = {
+  cartToken: 'cart-token-1',
+  items: [
+    {
+      id: 101,
+      menuItemId: 12,
+      menuItemName: 'Chicken Pepperoni',
+      quantity: 1,
+      price: 399,
+      subtotal: 399,
+      specialInstructions: '',
+    },
+  ],
+  subtotal: 399,
+};
+
+const doublePepperoniCart = {
+  ...pepperoniCart,
+  items: [
+    {
+      ...pepperoniCart.items[0],
+      quantity: 2,
+      subtotal: 798,
+    },
+  ],
+  subtotal: 798,
+};
 
 function LocationProbe() {
   const location = useLocation();
@@ -46,8 +89,11 @@ function renderMenu(initialPath = '/r/pizza-palace/menu?tableId=7') {
 describe('PublicMenuPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    window.localStorage.clear();
     orderService.getCurrentTableOrders.mockResolvedValue([]);
+    cartService.getCart.mockResolvedValue(emptyCart);
+    cartService.addCartItem.mockResolvedValue(pepperoniCart);
+    cartService.updateCartItem.mockResolvedValue(doublePepperoniCart);
+    cartService.clearCart.mockResolvedValue();
     categoryService.getPublicCategories.mockResolvedValue([{ id: 1, name: 'Pizza' }]);
     menuService.getPublicMenu.mockResolvedValue([
       {
@@ -140,7 +186,8 @@ describe('PublicMenuPage', () => {
     const { toast } = await import('react-toastify');
     renderMenu('/r/pizza-palace/menu');
 
-    fireEvent.click((await screen.findAllByRole('button', { name: 'Add to order' }))[0]);
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Add to cart' }))[0]);
+    await screen.findByText('Chicken Pepperoni');
     fireEvent.click(screen.getByRole('button', { name: 'Place order' }));
 
     await waitFor(() => {
@@ -153,10 +200,16 @@ describe('PublicMenuPage', () => {
   it('places a cart order and navigates to order tracking', async () => {
     const { toast } = await import('react-toastify');
     orderService.placeOrder.mockResolvedValue({ id: 99 });
+    cartService.updateCartItem.mockImplementation((cartItemId, payload) => Promise.resolve({
+      ...doublePepperoniCart,
+      items: [{ ...doublePepperoniCart.items[0], specialInstructions: payload.specialInstructions }],
+    }));
     renderMenu();
 
-    fireEvent.click((await screen.findAllByRole('button', { name: 'Add to order' }))[0]);
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Add to cart' }))[0]);
+    await screen.findByText('Chicken Pepperoni');
     fireEvent.click(screen.getByRole('button', { name: 'Add one Chicken Pepperoni' }));
+    await screen.findByText('Rs. 798');
     fireEvent.change(screen.getByLabelText('Special instructions'), { target: { value: 'Less spicy' } });
     fireEvent.click(screen.getByRole('button', { name: 'Place order' }));
 
@@ -168,16 +221,30 @@ describe('PublicMenuPage', () => {
       });
     });
 
+    expect(cartService.addCartItem).toHaveBeenCalledWith({
+      menuItemId: 12,
+      quantity: 1,
+      specialInstructions: '',
+    });
+    expect(cartService.updateCartItem).toHaveBeenCalledWith(101, {
+      quantity: 2,
+      specialInstructions: '',
+    });
+    expect(cartService.updateCartItem).toHaveBeenCalledWith(101, {
+      quantity: 2,
+      specialInstructions: 'Less spicy',
+    });
+    expect(cartService.clearCart).toHaveBeenCalled();
     expect(toast.success).toHaveBeenCalledWith('Order placed.');
     expect(await screen.findByTestId('location')).toHaveTextContent('/r/pizza-palace/orders/99?tableId=7');
   });
 
-  it('persists cart items for the standalone cart page', async () => {
+  it('shows backend cart items and links to the standalone cart page', async () => {
+    cartService.getCart.mockResolvedValue(pepperoniCart);
     renderMenu();
 
-    fireEvent.click((await screen.findAllByRole('button', { name: 'Add to order' }))[0]);
-
+    expect((await screen.findAllByText('Chicken Pepperoni'))[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Rs. 399')[0]).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Review cart' })).toHaveAttribute('href', '/r/pizza-palace/cart?tableId=7');
-    expect(window.localStorage.getItem('restrobuild:public-cart:pizza-palace:7')).toContain('Chicken Pepperoni');
   });
 });

@@ -628,7 +628,7 @@ OWNER
 
 Description
 
-Deletes category.
+Deletes category when no menu items exist inside it.
 
 Business Rule
 
@@ -778,6 +778,10 @@ DELETE
 Authentication
 
 OWNER
+
+Description
+
+Deletes a menu item by hiding it from the public menu.
 
 Business Rule
 
@@ -1034,6 +1038,10 @@ Authentication
 
 OWNER
 
+Description
+
+Deletes an unused table, or deactivates it when historical orders reference it.
+
 Business Rule
 
 Tables with active orders cannot be deleted.
@@ -1224,6 +1232,14 @@ Unexpected server error.
 # Cart APIs
 # =====================================================
 
+Cart Session Header
+
+Public cart APIs use `X-Cart-Token` to identify an anonymous customer cart.
+
+- `GET /api/cart` without a token returns an empty cart.
+- `POST /api/cart/items` without a token creates a cart and returns `cartToken`.
+- Clients should send the returned `cartToken` in `X-Cart-Token` for later cart reads, updates, removals, and clearing.
+
 ## Get Current Cart
 
 GET
@@ -1241,6 +1257,7 @@ Returns the current cart for the customer's session.
 Response
 
 {
+    "cartToken": "",
     "items": [],
     "subtotal": 0
 }
@@ -1268,6 +1285,8 @@ Request
 Response
 
 Updated cart.
+
+Response includes `cartToken`, cart items, and subtotal.
 
 Validation
 
@@ -1350,7 +1369,7 @@ Description
 
 Creates a new order.
 
-MVP implementation accepts order items directly in the request until server-side cart/dining-session storage is introduced.
+The backend accepts order items directly in the request so customers can place orders from the public cart API after the frontend resolves cart item rows back to menu item IDs.
 
 Request
 

@@ -4,107 +4,189 @@ Project: RestroBuild
 
 Version: 1.0.0
 
-Status: MVP baseline
+Status: MVP automated verification baseline
 
 ---
 
 # Purpose
 
-This document defines the current automated testing baseline for the RestroBuild MVP.
+This document defines the automated test strategy for the RestroBuild MVP. The goal is to verify backend rules, frontend behavior, and the real browser ordering lifecycle without requiring manual click-through testing.
 
 ---
 
-# Frontend Tests
+# Test Strategy
 
-Framework
+RestroBuild uses three automated layers:
 
-Vitest with jsdom and React Testing Library.
+- Backend unit and integration tests for domain rules, security, tenancy, cart APIs, orders, reviews, and analytics.
+- Frontend component and integration tests with Vitest, jsdom, and React Testing Library.
+- Playwright end-to-end tests that run the real frontend and backend together against an isolated MySQL test database.
 
-Command
+Existing tests must stay enabled. New tests should fix product issues they expose instead of weakening assertions.
 
-```bash
-npm run test
+---
+
+# Test Database
+
+Automated database-backed tests must not use the real local `restrobuild` database.
+
+The dedicated test database is:
+
+```text
+restrobuild_test
 ```
 
-Current coverage baseline
+Runtime variables:
 
-- Shared loading and error UI states.
-- Realtime order subscription client behavior.
-- Authentication route guard behavior.
-- Owner registration and login routing behavior.
-- Backend inactive account login rejection.
-- Public menu loading, filtering, sorting, in-page cart, persisted standalone cart, special instructions, and order placement behavior.
-- Public menu spicy and sweet level filtering.
-- Public menu active table order lookup with tracking and bill navigation.
-- Public dish details and public menu item reviews.
-- Public website homepage and about-page restaurant branding media.
-- Public QR table validation and table-context navigation.
-- Public order tracking, backend timeline loading with timestamp display, manual refresh, add-more-items navigation, reviews, and bill summary behavior.
-- Public order progress timeline and estimated-time display.
-- Public bill table-level aggregation, status context, manual refresh, active-order add-more navigation, and print action.
-- Staff kitchen and waiter order status workflows with manual refresh controls.
-- Waiter served order history.
-- Dashboard category search/refresh and menu form/list refresh behavior, including dish image upload URL handoff.
-- Dashboard owner order status, table number, date filters, and manual refresh.
-- Dashboard overview metrics, recent orders, and manual refresh.
-- Restaurant profile media URLs, upload URL handoff, previews, and website publishing/copy/open controls.
-- Dashboard table QR previews, link copying, download links, staff filtering/refresh, review filtering/refresh, and owner order management behavior.
-- Analytics dashboard display states and manual refresh.
-- Backend production runtime configuration guard.
-- Backend liveness and MySQL readiness health checks.
-- Production CORS wildcard guard.
-- Backend global authentication exception handling.
-- Backend authenticated user service guard behavior.
-- Backend request ID logging filter.
-- Backend JWT authentication filter behavior.
-- Backend JSON security error handlers.
-- Backend order service table-bill aggregation and public timeline state behavior.
-- Frontend ApiResponse unwrapping for backend response envelopes.
-- Frontend API error formatting with request ID display.
-- Frontend auth session storage and expiry notification.
+```text
+DB_URL=jdbc:mysql://localhost:3306/restrobuild_test
+DB_USERNAME=<local test mysql user>
+DB_PASSWORD=<local test mysql password>
+JWT_SECRET=<test jwt secret>
+```
 
-Future frontend tests should prioritize
+The checked-in `test` Spring profile uses `spring.jpa.hibernate.ddl-auto=create-drop`, so the schema is recreated for test runs. The database itself must exist before backend integration or Playwright tests start. The frontend command `npm run create:test-db` creates it using the local MySQL client.
 
-- Additional edge cases for failure states and validation.
-
-CI baseline:
-
-- Backend Maven tests.
-- Frontend tests, lint, and build.
-- Docker Compose configuration validation.
+No real password, JWT secret, or personal credential should be committed to the repository.
 
 ---
 
 # Backend Tests
 
-Framework
+Framework:
 
-JUnit and Spring Boot Test dependencies are available through the backend Maven configuration.
+JUnit, Spring Boot Test, MockMvc, Mockito.
 
-Command
+Commands:
 
-```bash
-mvn test
+```powershell
+cd backend
+.\mvnw.cmd clean test
+.\mvnw.cmd clean package
 ```
 
-Current environment note
+Current backend coverage includes:
 
-Backend tests are not executable in the current local agent environment because Maven is not installed on PATH.
-
-Future backend tests should prioritize
-
-- Authentication and JWT behavior.
-- Order lifecycle rules.
-- Restaurant ownership authorization.
-- Review verification rules.
+- Owner registration and login.
+- JWT-protected endpoint access.
+- Restaurant profile creation and update.
+- Restaurant data isolation between owners.
+- Category creation and update.
+- Menu item creation, availability, and visibility.
+- Staff creation and role restriction checks.
+- Public cart creation with `X-Cart-Token`.
+- Cart item add, update, remove, and clear flows.
+- Public order placement.
+- Invalid order status transition rejection.
+- Kitchen transition from `PENDING` to `PREPARING` to `READY`.
+- Waiter transition from `READY` to `SERVED`.
+- Verified review submission.
+- Rejection of reviews for unordered or unserved items.
+- Analytics summary and top-item calculations.
+- Health, request IDs, JWT, security errors, authenticated user guards, order timeline, and bill aggregation.
 
 ---
 
-# Definition of Done
+# Frontend Tests
 
-Every new slice should run the fastest relevant checks:
+Framework:
 
-- Frontend changes: `npm run test`, `npm run lint`, `npm run build`.
-- Backend changes: `mvn test` when Maven is available.
+Vitest with jsdom and React Testing Library.
 
-Manual smoke testing should cover the affected user journey before deployment.
+Commands:
+
+```powershell
+cd frontend
+npm run lint
+npm test
+npm run build
+```
+
+Current frontend coverage includes:
+
+- Authentication registration and login flows.
+- Protected routes and unauthorized state.
+- Loading, error, and empty page states.
+- Public menu loading, filtering, sorting, and table-context behavior.
+- Server-backed public cart behavior and anonymous cart token handling.
+- Cart quantity updates, clearing, and order placement.
+- Public order tracking, bill summaries, and review submission.
+- Kitchen and waiter order screens.
+- Dashboard categories, menu, tables, staff, orders, reviews, restaurant profile, website settings, and analytics screens.
+- API response unwrapping, API error formatting, auth session storage, clipboard, QR utilities, realtime client behavior, and uploads.
+
+---
+
+# End-To-End Tests
+
+Framework:
+
+Playwright with Chromium desktop and a mobile Chromium device profile.
+
+Command:
+
+```powershell
+cd frontend
+npm run test:e2e
+```
+
+Default E2E ports:
+
+```text
+Backend: http://localhost:18080
+Frontend: http://localhost:5174
+```
+
+The E2E command:
+
+1. Creates `restrobuild_test` if it does not exist.
+2. Starts the backend with the `test` profile.
+3. Starts the Vite frontend with `VITE_API_BASE_URL` pointed at the test backend.
+4. Runs the Playwright browser scenario.
+
+Covered desktop browser flow:
+
+- Seed/register an owner through the real backend API.
+- Log in/create restaurant data through the real backend API setup path.
+- Create category, available menu item, table, kitchen staff, and waiter staff.
+- Open the public restaurant menu for the table.
+- Add a dish to the server-backed anonymous cart.
+- Verify an anonymous cart token is stored in browser session storage.
+- Open the standalone cart and place an order.
+- Log in as kitchen staff and move the order from `PENDING` to `PREPARING` to `READY`.
+- Log in as waiter and mark the order `SERVED`.
+- Return to the customer order page and verify `SERVED`.
+- Submit a verified review.
+- Log in as owner and verify reviews, orders, and analytics reflect the order.
+
+Additional E2E checks:
+
+- Mobile public customer flow for opening the QR menu, adding multiple quantities to the server-backed cart, persisting the anonymous cart token, reviewing the cart total, and placing an order.
+- Negative API check that review submission is rejected before an order reaches `SERVED`.
+
+---
+
+# Full Verification
+
+Windows command:
+
+```powershell
+.\verify.bat
+```
+
+The script runs:
+
+- Backend tests.
+- Backend package.
+- Frontend lint.
+- Frontend tests.
+- Frontend build.
+- Playwright E2E tests.
+
+The script exits non-zero on the first failed command.
+
+---
+
+# Expected Result
+
+The MVP is considered automatically verified only when all backend tests, frontend tests, frontend lint, frontend build, backend package, and Playwright E2E tests pass.

@@ -7,6 +7,7 @@ import com.restrobuild.category.mapper.CategoryMapper;
 import com.restrobuild.category.repository.CategoryRepository;
 import com.restrobuild.exception.BusinessException;
 import com.restrobuild.exception.ResourceNotFoundException;
+import com.restrobuild.menu.repository.MenuItemRepository;
 import com.restrobuild.restaurant.entity.Restaurant;
 import com.restrobuild.restaurant.repository.RestaurantRepository;
 import com.restrobuild.security.AuthenticatedUserService;
@@ -19,17 +20,20 @@ import java.util.List;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final MenuItemRepository menuItemRepository;
     private final RestaurantRepository restaurantRepository;
     private final AuthenticatedUserService authenticatedUserService;
     private final CategoryMapper categoryMapper;
 
     public CategoryService(
             CategoryRepository categoryRepository,
+            MenuItemRepository menuItemRepository,
             RestaurantRepository restaurantRepository,
             AuthenticatedUserService authenticatedUserService,
             CategoryMapper categoryMapper
     ) {
         this.categoryRepository = categoryRepository;
+        this.menuItemRepository = menuItemRepository;
         this.restaurantRepository = restaurantRepository;
         this.authenticatedUserService = authenticatedUserService;
         this.categoryMapper = categoryMapper;
@@ -76,6 +80,10 @@ public class CategoryService {
     public void deleteCategory(Long categoryId) {
         Restaurant restaurant = authenticatedUserService.getAuthenticatedOwnerRestaurant();
         Category category = getActiveCategory(categoryId, restaurant.getId());
+        if (menuItemRepository.existsByCategoryId(category.getId())) {
+            throw new BusinessException("Category cannot be deleted while menu items exist inside it.");
+        }
+
         categoryRepository.delete(category);
     }
 

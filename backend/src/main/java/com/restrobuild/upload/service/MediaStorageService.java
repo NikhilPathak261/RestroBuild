@@ -18,7 +18,7 @@ import java.util.UUID;
 @Service
 public class MediaStorageService {
 
-    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp", "gif");
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "webp");
 
     private final Path mediaDirectory;
 
@@ -60,7 +60,7 @@ public class MediaStorageService {
 
         String extension = getExtension(file.getOriginalFilename());
         if (!ALLOWED_EXTENSIONS.contains(extension)) {
-            throw new BusinessException("Supported image formats are jpg, png, webp, and gif.");
+            throw new BusinessException("Supported image formats are jpg, png, and webp.");
         }
     }
 

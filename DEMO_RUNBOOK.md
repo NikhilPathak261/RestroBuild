@@ -4,22 +4,27 @@ Use this checklist for a smooth local MVP demo.
 
 ## Start
 
-1. Copy demo env:
+1. Make sure MySQL is running and create a local database for the demo.
+
+2. Start the backend with:
 
 ```bash
-cp .env.demo.example .env
+export DB_URL='jdbc:mysql://localhost:3306/<your_database>?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC'
+export DB_USERNAME='<your_database_user>'
+export DB_PASSWORD='<your_database_password>'
+export JWT_SECRET='<your_long_random_secret>'
+SPRING_PROFILES_ACTIVE=demo ./mvnw spring-boot:run
 ```
 
-2. Start the stack:
+On Windows PowerShell, run:
 
-```bash
-docker compose up --build
-```
-
-If Docker is unavailable, run MySQL manually, then start the backend with:
-
-```bash
-SPRING_PROFILES_ACTIVE=demo mvn spring-boot:run
+```powershell
+$env:SPRING_PROFILES_ACTIVE='demo'
+$env:DB_URL='jdbc:mysql://localhost:3306/<your_database>?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC'
+$env:DB_USERNAME='<your_database_user>'
+$env:DB_PASSWORD='<your_database_password>'
+$env:JWT_SECRET='<your_long_random_secret>'
+.\mvnw.cmd spring-boot:run
 ```
 
 and start the frontend with:
@@ -56,5 +61,5 @@ npm run dev
 
 - The demo profile is idempotent: it skips seeding if the demo owner already exists.
 - Image media can be pasted as URLs or uploaded through the owner dashboard; uploaded files are served from `/uploads/media`.
-- Uploaded demo media is stored in `UPLOAD_MEDIA_DIR` (`uploads/media` by default). Docker runs persist it in the `backend_uploads` volume; remove that volume to reset uploaded media.
-- Backend tests require Maven; frontend checks use `npm run lint`, `npm run build`, and `npx vitest run --pool=threads`.
+- Uploaded demo media is stored in `UPLOAD_MEDIA_DIR` (`uploads/media` by default).
+- Backend tests can run with `.\mvnw.cmd test` on Windows or `./mvnw test` on Unix shells; frontend checks use `npm run lint`, `npm run build`, and `npx vitest run --pool=threads`.

@@ -14,21 +14,25 @@ This document defines the deployment baseline for the RestroBuild MVP.
 
 ---
 
-# Local Docker Stack
+# Local Runtime
 
-The local Docker stack runs:
+The local runtime uses:
 
-- MySQL 8.4
+- MySQL 8.4 or compatible local MySQL server
 - Spring Boot backend
-- Nginx-served React frontend
+- Vite React frontend during development
 
-Command:
+Backend command:
 
 ```bash
-docker compose up --build
+SPRING_PROFILES_ACTIVE=demo ./mvnw spring-boot:run
 ```
 
-The stack reads configuration from `.env`. Start from `.env.example`.
+Frontend command:
+
+```bash
+npm run dev
+```
 
 ---
 
@@ -49,7 +53,7 @@ Purpose:
 - Seed categories, menu items, tables, QR URLs, sample orders, and reviews.
 - Keep demo data out of normal `default` and `prod` profile startup.
 
-Demo credentials are documented in `README.md` and `.env.demo.example`.
+Demo credentials are documented in `README.md`.
 
 ---
 
@@ -65,7 +69,6 @@ Backend:
 - `FRONTEND_BASE_URL`
 - `JPA_DDL_AUTO`
 - `SPRING_PROFILES_ACTIVE`
-- `JAVA_OPTS`
 - `LOG_LEVEL_ROOT`
 - `LOG_LEVEL_APP`
 - `LOG_LEVEL_SECURITY`
@@ -75,25 +78,15 @@ Frontend build:
 - `VITE_API_BASE_URL`
 - `VITE_WS_BASE_URL`
 
-Database:
-
-- `MYSQL_DATABASE`
-- `MYSQL_USER`
-- `MYSQL_PASSWORD`
-- `MYSQL_ROOT_PASSWORD`
-- `MYSQL_PORT`
-
 Default local MySQL JDBC URL:
 
 ```text
-jdbc:mysql://mysql:3306/restrobuild?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+jdbc:mysql://localhost:3306/restrobuild?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
 ```
 
 ---
 
 # Health Checks
-
-MySQL uses `mysqladmin ping`.
 
 Backend liveness uses:
 
@@ -107,19 +100,19 @@ Backend readiness uses:
 /api/health/ready
 ```
 
-The readiness endpoint checks MySQL connectivity. The local Compose stack waits for backend readiness before starting the frontend container.
+The readiness endpoint checks MySQL connectivity.
 
 ---
 
 # Production Notes
 
-- Replace the development `JWT_SECRET`.
+- Set `JWT_SECRET` from a secure environment variable or secret manager.
 - Restrict `CORS_ALLOWED_ORIGINS` to the deployed frontend origin.
 - Set `FRONTEND_BASE_URL` to the deployed frontend URL so QR and publish links are correct.
 - Use `wss://` for `VITE_WS_BASE_URL` when the frontend is served over HTTPS.
 - Use `SPRING_PROFILES_ACTIVE=prod` for production deployments.
 - The `prod` profile defaults `JPA_DDL_AUTO` to `validate` and disables Swagger/OpenAPI unless `SPRINGDOC_ENABLED=true`.
-- The backend fails fast in `prod` if the development JWT secret is still configured.
+- The backend fails fast in `prod` if the placeholder JWT secret is configured.
 - The backend fails fast in `prod` if `CORS_ALLOWED_ORIGINS` contains `*`.
 - REST and WebSocket origins both use `CORS_ALLOWED_ORIGINS`.
 - Move from MySQL schema auto-update to migrations before production data is relied on.
@@ -129,31 +122,22 @@ The readiness endpoint checks MySQL connectivity. The local Compose stack waits 
 
 # Frontend Runtime
 
-The frontend is served by Nginx in the Docker image.
+The frontend can be built with:
 
-The Nginx baseline includes:
+```bash
+npm run build
+```
 
-- SPA fallback routing.
-- Gzip compression for text assets.
-- Basic security headers for content type, framing, and referrer policy.
+The generated static assets are written to `frontend/dist`.
 
 ---
 
-# Container Runtime
+# Backend Runtime
 
-Backend container:
+The backend can be built with:
 
-- Runs the Spring Boot jar as a dedicated non-root user.
-- Accepts optional JVM settings through `JAVA_OPTS`.
-- Includes an image-level health check against `/api/health/ready`.
-- Emits request IDs in logs and returns them as `X-Request-Id` response headers.
-- Supports log level tuning through `LOG_LEVEL_ROOT`, `LOG_LEVEL_APP`, and `LOG_LEVEL_SECURITY`.
+```bash
+./mvnw package
+```
 
-Frontend runtime:
-
-- Displays backend request IDs in API error toasts when the response includes `X-Request-Id`.
-
-Frontend container:
-
-- Serves static assets through Nginx.
-- Includes an image-level health check against `/`.
+The generated jar is written to `backend/target`.

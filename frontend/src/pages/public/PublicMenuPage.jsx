@@ -2,11 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { ErrorState, LoadingState } from '../../components/PageState';
+import * as cartService from '../../services/cartService';
 import * as categoryService from '../../services/categoryService';
 import * as menuService from '../../services/menuService';
 import * as orderService from '../../services/orderService';
 import { getApiErrorMessage } from '../../utils/apiError';
-import { clearPublicCart, loadPublicCart, savePublicCart } from '../../utils/publicCart';
 
 function PublicMenuPage() {
   const { restaurantSlug } = useParams();
@@ -14,10 +14,10 @@ function PublicMenuPage() {
   const navigate = useNavigate();
   const tableId = searchParams.get('tableId');
   const tableQuery = tableId ? `?tableId=${tableId}` : '';
-  const initialCart = loadPublicCart(restaurantSlug, tableId);
   const [menuItems, setMenuItems] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [cartItems, setCartItems] = useState(initialCart.items);
+  const [cartItems, setCartItems] = useState([]);
+  const [cartSubtotal, setCartSubtotal] = useState(0);
   const [activeOrders, setActiveOrders] = useState([]);
   const [search, setSearch] = useState('');
   const [categoryId, setCategoryId] = useState('');
@@ -25,9 +25,10 @@ function PublicMenuPage() {
   const [spicyLevel, setSpicyLevel] = useState('');
   const [sweetLevel, setSweetLevel] = useState('');
   const [sortOrder, setSortOrder] = useState('');
-  const [specialInstructions, setSpecialInstructions] = useState(initialCart.specialInstructions);
+  const [specialInstructions, setSpecialInstructions] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [isUpdatingCart, setIsUpdatingCart] = useState(false);
   const [isOrdering, setIsOrdering] = useState(false);
   const [error, setError] = useState('');
   const [ordersError, setOrdersError] = useState('');
@@ -55,11 +56,6 @@ function PublicMenuPage() {
     });
   }, [categoryId, foodType, menuItems, search, sortOrder, spicyLevel, sweetLevel]);
 
-  const cartTotal = useMemo(
-    () => cartItems.reduce((total, item) => total + Number(item.price) * item.quantity, 0),
-    [cartItems],
-  );
-
   const loadCurrentTableOrders = useCallback(async () => {
     if (!tableId) {
       setActiveOrders([]);
@@ -82,19 +78,29 @@ function PublicMenuPage() {
     }
   }, [tableId]);
 
+  const applyCart = useCallback((cart) => {
+    const items = cart?.items ?? [];
+    setCartItems(items);
+    setCartSubtotal(Number(cart?.subtotal ?? 0));
+    const firstInstruction = items.find((item) => item.specialInstructions)?.specialInstructions;
+    setSpecialInstructions(firstInstruction ?? '');
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
 
     async function loadMenu() {
       try {
-        const [categoryResponse, menuResponse] = await Promise.all([
+        const [categoryResponse, menuResponse, cartResponse] = await Promise.all([
           categoryService.getPublicCategories(restaurantSlug),
           menuService.getPublicMenu(restaurantSlug),
+          cartService.getCart(),
         ]);
 
         if (isMounted) {
           setCategories(categoryResponse);
           setMenuItems(menuResponse);
+          applyCart(cartResponse);
         }
       } catch {
         if (isMounted) {
@@ -112,15 +118,11 @@ function PublicMenuPage() {
     return () => {
       isMounted = false;
     };
-  }, [restaurantSlug]);
+  }, [applyCart, restaurantSlug]);
 
   useEffect(() => {
     loadCurrentTableOrders();
   }, [loadCurrentTableOrders]);
-
-  useEffect(() => {
-    savePublicCart(restaurantSlug, tableId, { items: cartItems, specialInstructions });
-  }, [cartItems, restaurantSlug, specialInstructions, tableId]);
 
   if (isLoading) {
     return <LoadingState label="Loading menu..." />;
@@ -130,28 +132,38 @@ function PublicMenuPage() {
     return <ErrorState title={error} message="Please ask the restaurant staff for help." />;
   }
 
-  function addToCart(item) {
-    setCartItems((current) => {
-      const existingItem = current.find((cartItem) => cartItem.id === item.id);
-      if (existingItem) {
-        return current.map((cartItem) => (
-          cartItem.id === item.id ? { ...cartItem, quantity: cartItem.quantity + 1 } : cartItem
-        ));
-      }
-
-      return [...current, { ...item, quantity: 1 }];
-    });
+  async function addToCart(item) {
+    setIsUpdatingCart(true);
+    try {
+      const cart = await cartService.addCartItem({
+        menuItemId: item.id,
+        quantity: 1,
+        specialInstructions: specialInstructions.trim(),
+      });
+      applyCart(cart);
+      toast.success('Added to cart.');
+    } catch (cartError) {
+      toast.error(getApiErrorMessage(cartError, 'Failed to update cart.'));
+    } finally {
+      setIsUpdatingCart(false);
+    }
   }
 
-  function updateCartQuantity(itemId, quantity) {
-    if (quantity <= 0) {
-      setCartItems((current) => current.filter((item) => item.id !== itemId));
-      return;
+  async function updateCartQuantity(item, quantity) {
+    setIsUpdatingCart(true);
+    try {
+      const cart = quantity <= 0
+        ? await cartService.removeCartItem(item.id)
+        : await cartService.updateCartItem(item.id, {
+          quantity,
+          specialInstructions: specialInstructions.trim(),
+        });
+      applyCart(cart);
+    } catch (cartError) {
+      toast.error(getApiErrorMessage(cartError, 'Failed to update cart.'));
+    } finally {
+      setIsUpdatingCart(false);
     }
-
-    setCartItems((current) => current.map((item) => (
-      item.id === itemId ? { ...item, quantity } : item
-    )));
   }
 
   async function placeCartOrder() {
@@ -168,21 +180,35 @@ function PublicMenuPage() {
     setIsOrdering(true);
 
     try {
+      await syncCartInstructions();
       const response = await orderService.placeOrder({
         tableId: Number(tableId),
-        items: cartItems.map((item) => ({ menuItemId: item.id, quantity: item.quantity })),
+        items: cartItems.map((item) => ({ menuItemId: item.menuItemId, quantity: item.quantity })),
         specialInstructions: specialInstructions.trim(),
       });
       toast.success('Order placed.');
       setCartItems([]);
+      setCartSubtotal(0);
       setSpecialInstructions('');
-      clearPublicCart(restaurantSlug, tableId);
+      await cartService.clearCart();
       navigate(`/r/${restaurantSlug}/orders/${response.id}?tableId=${tableId}`);
     } catch (orderError) {
       toast.error(getApiErrorMessage(orderError, 'Failed to place order.'));
     } finally {
       setIsOrdering(false);
     }
+  }
+
+  async function syncCartInstructions() {
+    const instruction = specialInstructions.trim();
+    await Promise.all(cartItems.map((item) => (
+      item.specialInstructions === instruction
+        ? Promise.resolve()
+        : cartService.updateCartItem(item.id, {
+          quantity: item.quantity,
+          specialInstructions: instruction,
+        })
+    )));
   }
 
   return (
@@ -284,7 +310,7 @@ function PublicMenuPage() {
       <section className="list-panel">
         <div className="list-header">
           <h2>Your Order</h2>
-          <strong>Rs. {cartTotal}</strong>
+          <strong>Rs. {cartSubtotal}</strong>
         </div>
         {cartItems.length === 0 ? (
           <div className="empty-state compact">Add dishes from the menu below.</div>
@@ -292,13 +318,13 @@ function PublicMenuPage() {
           <div className="analytics-list">
             {cartItems.map((item) => (
               <div key={item.id}>
-                <span>{item.name}</span>
+                <span>{item.menuItemName}</span>
                 <div className="table-actions">
-                  <button type="button" onClick={() => updateCartQuantity(item.id, item.quantity - 1)} aria-label={`Remove one ${item.name}`}>
+                  <button type="button" onClick={() => updateCartQuantity(item, item.quantity - 1)} aria-label={`Remove one ${item.menuItemName}`} disabled={isUpdatingCart}>
                     -
                   </button>
                   <strong>{item.quantity}</strong>
-                  <button type="button" onClick={() => updateCartQuantity(item.id, item.quantity + 1)} aria-label={`Add one ${item.name}`}>
+                  <button type="button" onClick={() => updateCartQuantity(item, item.quantity + 1)} aria-label={`Add one ${item.menuItemName}`} disabled={isUpdatingCart || item.quantity >= 99}>
                     +
                   </button>
                 </div>
@@ -316,7 +342,7 @@ function PublicMenuPage() {
             onChange={(event) => setSpecialInstructions(event.target.value)}
           />
         </label>
-        <button type="button" onClick={placeCartOrder} disabled={isOrdering || cartItems.length === 0}>
+        <button type="button" onClick={placeCartOrder} disabled={isOrdering || isUpdatingCart || cartItems.length === 0}>
           {isOrdering ? 'Placing order...' : 'Place order'}
         </button>
         <Link className="ghost-button inline" to={`/r/${restaurantSlug}/cart${tableQuery}`}>
@@ -341,8 +367,8 @@ function PublicMenuPage() {
                 <Link className="ghost-button inline" to={`/r/${restaurantSlug}/menu/${item.id}${tableQuery}`}>
                   View details
                 </Link>
-                <button type="button" onClick={() => addToCart(item)}>
-                  Add to order
+                <button type="button" onClick={() => addToCart(item)} disabled={isUpdatingCart}>
+                  Add to cart
                 </button>
               </div>
             </article>

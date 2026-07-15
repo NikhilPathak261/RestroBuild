@@ -57,7 +57,12 @@ public class WebsiteController {
         return ResponseEntity.ok(ApiResponse.success("Website published successfully.", response));
     }
 
-    @GetMapping("/api/public/{restaurantSlug}")
+    @GetMapping({
+            "/api/public/{restaurantSlug}",
+            "/api/public/{restaurantSlug}/home",
+            "/api/public/{restaurantSlug}/about",
+            "/api/public/{restaurantSlug}/contact"
+    })
     public ResponseEntity<ApiResponse<RestaurantResponse>> getPublicWebsite(
             @PathVariable String restaurantSlug
     ) {

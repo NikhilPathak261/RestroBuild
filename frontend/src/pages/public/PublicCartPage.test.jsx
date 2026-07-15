@@ -1,8 +1,8 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import * as cartService from '../../services/cartService';
 import * as orderService from '../../services/orderService';
-import { getPublicCartKey } from '../../utils/publicCart';
 import PublicCartPage from './PublicCartPage';
 
 vi.mock('react-toastify', () => ({
@@ -15,6 +15,42 @@ vi.mock('react-toastify', () => ({
 vi.mock('../../services/orderService', () => ({
   placeOrder: vi.fn(),
 }));
+
+vi.mock('../../services/cartService', () => ({
+  getCart: vi.fn(),
+  addCartItem: vi.fn(),
+  updateCartItem: vi.fn(),
+  removeCartItem: vi.fn(),
+  clearCart: vi.fn(),
+}));
+
+const pepperoniCart = {
+  cartToken: 'cart-token-1',
+  items: [
+    {
+      id: 101,
+      menuItemId: 12,
+      menuItemName: 'Chicken Pepperoni',
+      price: 399,
+      quantity: 2,
+      subtotal: 798,
+      specialInstructions: 'Less spicy',
+    },
+  ],
+  subtotal: 798,
+};
+
+const singlePepperoniCart = {
+  ...pepperoniCart,
+  items: [
+    {
+      ...pepperoniCart.items[0],
+      quantity: 1,
+      subtotal: 399,
+    },
+  ],
+  subtotal: 399,
+};
 
 function LocationProbe() {
   const location = useLocation();
@@ -36,17 +72,12 @@ function renderCart(path = '/r/pizza-palace/cart?tableId=7') {
 describe('PublicCartPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    window.localStorage.clear();
-    window.localStorage.setItem(
-      getPublicCartKey('pizza-palace', '7'),
-      JSON.stringify({
-        items: [{ id: 12, name: 'Chicken Pepperoni', price: 399, quantity: 2 }],
-        specialInstructions: 'Less spicy',
-      }),
-    );
+    cartService.getCart.mockResolvedValue(pepperoniCart);
+    cartService.updateCartItem.mockResolvedValue(singlePepperoniCart);
+    cartService.clearCart.mockResolvedValue();
   });
 
-  it('loads persisted cart items and updates quantities', async () => {
+  it('loads server cart items and updates quantities', async () => {
     renderCart();
 
     expect(await screen.findByRole('heading', { name: 'Your order' })).toBeInTheDocument();
@@ -56,25 +87,36 @@ describe('PublicCartPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Remove one Chicken Pepperoni' }));
 
-    expect(screen.getByText('Rs. 399')).toBeInTheDocument();
-    expect(JSON.parse(window.localStorage.getItem(getPublicCartKey('pizza-palace', '7'))).items[0].quantity).toBe(1);
+    await waitFor(() => {
+      expect(cartService.updateCartItem).toHaveBeenCalledWith(101, {
+        quantity: 1,
+        specialInstructions: 'Less spicy',
+      });
+    });
+    expect(await screen.findByText('Rs. 399')).toBeInTheDocument();
   });
 
-  it('clears persisted cart items and instructions', async () => {
+  it('clears server cart items and instructions', async () => {
     renderCart();
 
     expect(await screen.findByText('Chicken Pepperoni')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Clear cart' }));
 
-    expect(screen.getByText('Your cart is empty.')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(cartService.clearCart).toHaveBeenCalled();
+    });
+    expect(await screen.findByText('Your cart is empty.')).toBeInTheDocument();
     expect(screen.getByLabelText('Special instructions')).toHaveValue('');
-    expect(window.localStorage.getItem(getPublicCartKey('pizza-palace', '7'))).toBeNull();
   });
 
-  it('places persisted cart orders and clears storage', async () => {
+  it('places server cart orders and clears the backend cart', async () => {
     const { toast } = await import('react-toastify');
     orderService.placeOrder.mockResolvedValue({ id: 99 });
+    cartService.updateCartItem.mockResolvedValue({
+      ...pepperoniCart,
+      items: [{ ...pepperoniCart.items[0], specialInstructions: 'Less spicy' }],
+    });
 
     renderCart();
 
@@ -88,16 +130,12 @@ describe('PublicCartPage', () => {
       });
     });
     expect(toast.success).toHaveBeenCalledWith('Order placed.');
-    expect(window.localStorage.getItem(getPublicCartKey('pizza-palace', '7'))).toBeNull();
+    expect(cartService.clearCart).toHaveBeenCalled();
     expect(await screen.findByTestId('location')).toHaveTextContent('/r/pizza-palace/orders/99?tableId=7');
   });
 
   it('requires a table QR before placing orders', async () => {
     const { toast } = await import('react-toastify');
-    window.localStorage.setItem(
-      getPublicCartKey('pizza-palace', null),
-      JSON.stringify({ items: [{ id: 12, name: 'Chicken Pepperoni', price: 399, quantity: 1 }], specialInstructions: '' }),
-    );
 
     renderCart('/r/pizza-palace/cart');
 

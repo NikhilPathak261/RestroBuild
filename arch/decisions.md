@@ -489,24 +489,6 @@ Makes frontend integration easier.
 
 ---
 
-# ADR-025
-
-Title
-
-Docker Support
-
-Decision
-
-Application should be Docker-ready.
-
-Reason
-
-Simplifies deployment.
-
-Provides consistent environments.
-
----
-
 # ADR-026
 
 Title

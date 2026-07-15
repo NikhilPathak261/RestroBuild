@@ -29,7 +29,7 @@ public class AnalyticsController {
         return ResponseEntity.ok(ApiResponse.success("Analytics summary fetched successfully.", analyticsService.getSummary()));
     }
 
-    @GetMapping("/api/analytics/revenue/daily")
+    @GetMapping({"/api/analytics/revenue/daily", "/api/dashboard/revenue"})
     public ResponseEntity<ApiResponse<List<RevenuePointResponse>>> getDailyRevenue() {
         return ResponseEntity.ok(ApiResponse.success("Daily revenue fetched successfully.", analyticsService.getDailyRevenue()));
     }

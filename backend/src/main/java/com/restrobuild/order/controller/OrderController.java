@@ -68,6 +68,13 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.success("Restaurant orders fetched successfully.", response));
     }
 
+    @GetMapping("/api/dashboard/recent-orders")
+    @PreAuthorize("hasAuthority('ROLE_OWNER')")
+    public ResponseEntity<ApiResponse<List<OrderResponse>>> getRecentOrders() {
+        List<OrderResponse> response = orderService.getRecentOrders();
+        return ResponseEntity.ok(ApiResponse.success("Recent orders fetched successfully.", response));
+    }
+
     @PatchMapping("/api/orders/{orderId}/cancel")
     @PreAuthorize("hasAuthority('ROLE_OWNER')")
     public ResponseEntity<ApiResponse<Void>> cancelOrder(@PathVariable Long orderId) {

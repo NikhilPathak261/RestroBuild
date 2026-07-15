@@ -85,14 +85,8 @@ It enables restaurant owners to create their own branded restaurant website with
 
 ## Build Tools
 
-- Maven
+- Maven Wrapper
 - Vite
-
-## Containerization
-
-- Docker
-
----
 
 # 📂 Project Structure
 
@@ -103,7 +97,7 @@ RESTROBUILD/
 │
 ├── frontend/
 │
-├── arch/               (Ignored from Git)
+├── arch/               (Architecture and planning docs)
 │
 ├── .gitignore
 │
@@ -128,13 +122,15 @@ git clone <repository-url>
 cd backend
 ```
 
-Configure your environment variables.
+Configure your environment variables. At minimum, the backend requires `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, and `JWT_SECRET`.
 
 Run
 
 ```bash
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
+
+On Windows PowerShell or Command Prompt, use `mvnw.cmd spring-boot:run`.
 
 Backend runs on
 
@@ -147,7 +143,18 @@ http://localhost:8080
 For a fast local walkthrough, run the backend with the `demo` profile. It seeds a published restaurant, staff users, tables, QR links, menu items, sample orders, and reviews.
 
 ```bash
-SPRING_PROFILES_ACTIVE=demo mvn spring-boot:run
+SPRING_PROFILES_ACTIVE=demo ./mvnw spring-boot:run
+```
+
+On Windows PowerShell, set your local MySQL details first:
+
+```powershell
+$env:SPRING_PROFILES_ACTIVE='demo'
+$env:DB_URL='jdbc:mysql://localhost:3306/<your_database>?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC'
+$env:DB_USERNAME='<your_database_user>'
+$env:DB_PASSWORD='<your_database_password>'
+$env:JWT_SECRET='<your_long_random_secret>'
+.\mvnw.cmd spring-boot:run
 ```
 
 Demo logins:
@@ -164,14 +171,7 @@ Demo customer website:
 http://localhost:5173/r/spice-house-demo
 ```
 
-With Docker, copy `.env.demo.example` to `.env` and start the stack:
-
-```bash
-cp .env.demo.example .env
-docker compose up --build
-```
-
-Uploaded dashboard media is stored in `UPLOAD_MEDIA_DIR` and persisted in the Docker `backend_uploads` volume by default.
+Uploaded dashboard media is stored in `UPLOAD_MEDIA_DIR` (`uploads/media` by default).
 
 See `DEMO_RUNBOOK.md` for the recommended presentation walkthrough.
 
@@ -203,18 +203,12 @@ http://localhost:5173
 
 ---
 
-# Docker Deployment
+# Local Configuration
 
-Copy the example environment file and adjust secrets/URLs for your machine or host:
+Copy the example environment file and fill in your own database credentials, secrets, and URLs:
 
 ```bash
 cp .env.example .env
-```
-
-Start the full stack:
-
-```bash
-docker compose up --build
 ```
 
 Default local URLs:
@@ -228,18 +222,16 @@ Default local URLs:
 Important production variables:
 
 - `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`: point the backend to the MySQL database.
-- `MYSQL_DATABASE`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_ROOT_PASSWORD`, `MYSQL_PORT`: configure the local Docker MySQL service.
-- `JWT_SECRET`: replace the development value with a strong secret.
+- `JWT_SECRET`: set a strong secret.
 - `CORS_ALLOWED_ORIGINS`: set to the deployed frontend origin.
 - `FRONTEND_BASE_URL`: set to the deployed frontend URL used in QR/public links.
 - `VITE_API_BASE_URL`: set to the public backend API URL at frontend build time.
 - `VITE_WS_BASE_URL`: set to the public WebSocket URL at frontend build time.
 - `SPRING_PROFILES_ACTIVE`: use `prod` for production deployments.
 - `JPA_DDL_AUTO`: use `validate` or managed MySQL migrations for production once migration tooling is added.
-- `JAVA_OPTS`: optional JVM flags for the backend container, such as memory limits.
 - `LOG_LEVEL_ROOT`, `LOG_LEVEL_APP`, `LOG_LEVEL_SECURITY`: optional backend log level controls.
 
-When the backend runs with the `prod` profile, it fails fast if the development JWT secret or wildcard CORS origins are still configured and disables Swagger/OpenAPI by default.
+The backend requires database and JWT environment variables for every profile. When it runs with the `prod` profile, it also fails fast if a known placeholder JWT secret or wildcard CORS origins are configured and disables Swagger/OpenAPI by default.
 
 ---
 

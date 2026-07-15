@@ -117,6 +117,8 @@ Restaurant
 │      └── MenuItem
 ├── RestaurantTable
 │      └── QRCode
+├── PublicCart
+│      └── PublicCartItem
 ├── Staff
 ├── Order
 │      └── OrderItem
@@ -195,6 +197,10 @@ Many Orders
 ↓
 
 Many Reviews
+
+↓
+
+Many Public Carts
 
 ---
 
@@ -462,6 +468,60 @@ Each order belongs to one restaurant.
 
 ---
 
+# Table : public_cart
+
+Purpose
+
+Stores anonymous public customer carts before order placement.
+
+Columns
+
+id
+
+restaurant_id (FK)
+
+token
+
+created_at
+
+updated_at
+
+Business Rules
+
+Cart tokens identify anonymous customer carts.
+
+One public cart belongs to one restaurant.
+
+Cart tokens must be unique.
+
+---
+
+# Table : public_cart_item
+
+Purpose
+
+Stores dishes inside an anonymous public cart.
+
+Columns
+
+id
+
+cart_id (FK)
+
+menu_item_id (FK)
+
+quantity
+
+special_instructions
+
+Business Rules
+
+Cart item quantity must be between 1 and 99.
+
+Cart item special instructions must be at most 500 characters.
+
+---
+
 # Table : order_item
 
 Purpose
@@ -590,6 +650,26 @@ Restaurant
 
 Many
 
+PublicCart
+
+PublicCart
+
+1
+
+↓
+
+Many
+
+PublicCartItem
+
+Restaurant
+
+1
+
+↓
+
+Many
+
 Review
 
 Category
@@ -631,6 +711,16 @@ MenuItem
 Many
 
 OrderItem
+
+MenuItem
+
+1
+
+↓
+
+Many
+
+PublicCartItem
 
 MenuItem
 
@@ -688,6 +778,18 @@ table_id
 
 status
 
+PublicCart
+
+restaurant_id
+
+token
+
+PublicCartItem
+
+cart_id
+
+menu_item_id
+
 Review
 
 menu_item_id
@@ -721,6 +823,12 @@ Restaurant Table
 Unique
 
 restaurant_id + table_number
+
+Public Cart
+
+Unique
+
+token
 
 Review
 

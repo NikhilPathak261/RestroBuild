@@ -11,7 +11,7 @@ import java.util.List;
 @Component
 public class RuntimeConfigurationValidator {
 
-    private static final String DEVELOPMENT_JWT_SECRET = "change-this-development-secret-change-this-development-secret";
+    private static final String PLACEHOLDER_JWT_SECRET = "change-this-development-secret-change-this-development-secret";
 
     private final Environment environment;
     private final String jwtSecret;
@@ -33,7 +33,7 @@ public class RuntimeConfigurationValidator {
             return;
         }
 
-        if (DEVELOPMENT_JWT_SECRET.equals(jwtSecret)) {
+        if (PLACEHOLDER_JWT_SECRET.equals(jwtSecret)) {
             throw new IllegalStateException("JWT_SECRET must be changed before running with the prod profile.");
         }
 

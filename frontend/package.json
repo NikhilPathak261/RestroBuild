@@ -8,6 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "test": "vitest run",
+    "create:test-db": "node scripts/create-test-db.cjs",
+    "test:e2e": "npm run create:test-db && playwright test",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -21,6 +23,7 @@
     "vite": "^7.0.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "eslint": "^9.30.1",
