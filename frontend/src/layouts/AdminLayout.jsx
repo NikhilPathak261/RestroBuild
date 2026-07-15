@@ -25,6 +25,9 @@ function AdminLayout() {
 
   return (
     <div className="dashboard-shell">
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
       <aside className="sidebar">
         <div className="brand">RestroBuild</div>
         <nav>
@@ -38,7 +41,7 @@ function AdminLayout() {
           Logout
         </button>
       </aside>
-      <main className="dashboard-main">
+      <main id="main-content" className="dashboard-main" tabIndex={-1}>
         <Outlet />
       </main>
     </div>

@@ -10,9 +10,17 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 @Component
 public class OrderWebSocketHandler extends TextWebSocketHandler {
+
+    private static final Pattern ORDER_TOPIC = Pattern.compile("^/topic/orders/[1-9]\\d*$");
+    private static final Set<String> STAFF_TOPICS = Set.of(
+            "/topic/kitchen/orders",
+            "/topic/waiter/orders",
+            "/topic/owner/orders"
+    );
 
     private final Map<String, Set<WebSocketSession>> subscribers = new ConcurrentHashMap<>();
 
@@ -21,6 +29,9 @@ public class OrderWebSocketHandler extends TextWebSocketHandler {
         String payload = message.getPayload();
         if (payload.startsWith("SUBSCRIBE ")) {
             String destination = payload.substring("SUBSCRIBE ".length()).trim();
+            if (!isAllowedDestination(destination)) {
+                return;
+            }
             subscribers.computeIfAbsent(destination, key -> ConcurrentHashMap.newKeySet()).add(session);
         }
     }
@@ -31,8 +42,17 @@ public class OrderWebSocketHandler extends TextWebSocketHandler {
     }
 
     public void broadcast(String destination, String payload) {
-        Set<WebSocketSession> sessions = subscribers.getOrDefault(destination, Set.of());
+        Set<WebSocketSession> sessions = subscribers.get(destination);
+        if (sessions == null) {
+            return;
+        }
+
+        sessions.removeIf(session -> !session.isOpen());
         sessions.forEach(session -> send(session, payload));
+    }
+
+    boolean isAllowedDestination(String destination) {
+        return ORDER_TOPIC.matcher(destination).matches() || STAFF_TOPICS.contains(destination);
     }
 
     private void send(WebSocketSession session, String payload) {

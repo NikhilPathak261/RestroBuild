@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
+import PaginationControls from '../../components/PaginationControls';
 import * as orderService from '../../services/orderService';
 import { subscribeToOwnerOrders } from '../../services/realtimeService';
 import { getApiErrorMessage } from '../../utils/apiError';
+import { DEFAULT_PAGE_SIZE, clampPage, paginateItems } from '../../utils/pagination';
 
 const statusOptions = ['', 'PENDING', 'PREPARING', 'READY', 'SERVED', 'CANCELLED'];
 
@@ -10,6 +12,9 @@ function OrdersPage() {
   const [orders, setOrders] = useState([]);
   const [filters, setFilters] = useState({ status: '', tableNumber: '', date: '' });
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const safePage = clampPage(page, orders.length, DEFAULT_PAGE_SIZE);
+  const visibleOrders = paginateItems(orders, safePage, DEFAULT_PAGE_SIZE);
 
   const loadOrders = useCallback(async (nextFilters = filters) => {
     setIsLoading(true);
@@ -17,6 +22,7 @@ function OrdersPage() {
     try {
       const response = await orderService.getRestaurantOrders(nextFilters);
       setOrders(response);
+      setPage(1);
     } catch (error) {
       toast.error(getApiErrorMessage(error, 'Failed to load orders.'));
     } finally {
@@ -90,55 +96,64 @@ function OrdersPage() {
         ) : orders.length === 0 ? (
           <div className="empty-state compact">No orders found.</div>
         ) : (
-          <div className="responsive-table">
-            <table>
-              <thead>
-                <tr>
-                  <th>Order</th>
-                  <th>Table</th>
-                  <th>Items</th>
-                  <th>Total</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((order) => (
-                  <tr key={order.id}>
-                    <td>#{order.id}</td>
-                    <td>{order.tableNumber}</td>
-                    <td>{order.items.map((item) => `${item.quantity}x ${item.menuItemName}`).join(', ')}</td>
-                    <td>Rs. {order.totalAmount}</td>
-                    <td>{order.status}</td>
-                    <td>
-                      <div className="table-actions">
-                        {order.status === 'PENDING' && (
-                          <>
-                            <button type="button" onClick={() => runAction(() => orderService.markPreparing(order.id), 'Order marked preparing.')}>
-                              Prepare
-                            </button>
-                            <button className="danger-button" type="button" onClick={() => runAction(() => orderService.cancelOrder(order.id), 'Order cancelled.')}>
-                              Cancel
-                            </button>
-                          </>
-                        )}
-                        {order.status === 'PREPARING' && (
-                          <button type="button" onClick={() => runAction(() => orderService.markReady(order.id), 'Order marked ready.')}>
-                            Ready
-                          </button>
-                        )}
-                        {order.status === 'READY' && (
-                          <button type="button" onClick={() => runAction(() => orderService.markServed(order.id), 'Order marked served.')}>
-                            Served
-                          </button>
-                        )}
-                      </div>
-                    </td>
+          <>
+            <div className="responsive-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Order</th>
+                    <th>Table</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {visibleOrders.map((order) => (
+                    <tr key={order.id}>
+                      <td>#{order.id}</td>
+                      <td>{order.tableNumber}</td>
+                      <td>{order.items.map((item) => `${item.quantity}x ${item.menuItemName}`).join(', ')}</td>
+                      <td>Rs. {order.totalAmount}</td>
+                      <td>{order.status}</td>
+                      <td>
+                        <div className="table-actions">
+                          {order.status === 'PENDING' && (
+                            <>
+                              <button type="button" onClick={() => runAction(() => orderService.markPreparing(order.id), 'Order marked preparing.')}>
+                                Prepare
+                              </button>
+                              <button className="danger-button" type="button" onClick={() => runAction(() => orderService.cancelOrder(order.id), 'Order cancelled.')}>
+                                Cancel
+                              </button>
+                            </>
+                          )}
+                          {order.status === 'PREPARING' && (
+                            <button type="button" onClick={() => runAction(() => orderService.markReady(order.id), 'Order marked ready.')}>
+                              Ready
+                            </button>
+                          )}
+                          {order.status === 'READY' && (
+                            <button type="button" onClick={() => runAction(() => orderService.markServed(order.id), 'Order marked served.')}>
+                              Served
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <PaginationControls
+              currentPage={safePage}
+              totalItems={orders.length}
+              pageSize={DEFAULT_PAGE_SIZE}
+              label="orders"
+              onPageChange={setPage}
+            />
+          </>
         )}
       </section>
     </section>

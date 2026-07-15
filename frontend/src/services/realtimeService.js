@@ -16,14 +16,18 @@ export function subscribeToOwnerOrders(onMessage) {
 
 function subscribe(destination, onMessage) {
   const baseUrl = getWebSocketUrl();
+  const reconnectDelays = [1000, 2000, 5000, 10000];
   let socket;
   let reconnectTimer;
   let stopped = false;
+  let reconnectAttempts = 0;
 
   function connect() {
+    window.clearTimeout(reconnectTimer);
     socket = new WebSocket(baseUrl);
 
     socket.addEventListener('open', () => {
+      reconnectAttempts = 0;
       socket.send(`SUBSCRIBE ${destination}`);
     });
 
@@ -36,17 +40,33 @@ function subscribe(destination, onMessage) {
     });
 
     socket.addEventListener('close', () => {
-      if (!stopped) {
-        reconnectTimer = window.setTimeout(connect, 5000);
-      }
+      scheduleReconnect();
     });
   }
 
+  function scheduleReconnect() {
+    if (stopped || !navigator.onLine) {
+      return;
+    }
+
+    const delay = reconnectDelays[Math.min(reconnectAttempts, reconnectDelays.length - 1)];
+    reconnectAttempts += 1;
+    reconnectTimer = window.setTimeout(connect, delay);
+  }
+
+  function reconnectWhenOnline() {
+    if (!stopped) {
+      connect();
+    }
+  }
+
+  window.addEventListener('online', reconnectWhenOnline);
   connect();
 
   return () => {
     stopped = true;
     window.clearTimeout(reconnectTimer);
+    window.removeEventListener('online', reconnectWhenOnline);
     socket?.close();
   };
 }

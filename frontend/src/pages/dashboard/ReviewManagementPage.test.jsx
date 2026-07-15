@@ -38,7 +38,7 @@ describe('ReviewManagementPage', () => {
     render(<ReviewManagementPage />);
 
     expect(await screen.findByText('Paneer Tikka')).toBeInTheDocument();
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: '5' } });
+    fireEvent.change(screen.getByLabelText('Filter by rating'), { target: { value: '5' } });
 
     await waitFor(() => {
       expect(reviewService.getReviews).toHaveBeenCalledWith({ rating: '5' });
@@ -55,7 +55,7 @@ describe('ReviewManagementPage', () => {
     render(<ReviewManagementPage />);
 
     expect(await screen.findByText('Paneer Tikka')).toBeInTheDocument();
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: '4' } });
+    fireEvent.change(screen.getByLabelText('Filter by rating'), { target: { value: '4' } });
 
     await waitFor(() => {
       expect(reviewService.getReviews).toHaveBeenCalledWith({ rating: '4' });
@@ -66,5 +66,27 @@ describe('ReviewManagementPage', () => {
     await waitFor(() => {
       expect(reviewService.getReviews).toHaveBeenLastCalledWith({ rating: '4' });
     });
+  });
+
+  it('paginates large review lists', async () => {
+    reviewService.getReviews.mockResolvedValue(
+      Array.from({ length: 11 }, (_, index) => ({
+        id: index + 1,
+        menuItemName: `Dish ${index + 1}`,
+        rating: 5,
+        comment: 'Good',
+        visible: true,
+      })),
+    );
+
+    render(<ReviewManagementPage />);
+
+    expect(await screen.findByText('Dish 1')).toBeInTheDocument();
+    expect(screen.queryByText('Dish 11')).not.toBeInTheDocument();
+    expect(screen.getByText('Showing 1-10 of 11 reviews')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+    expect(screen.getByText('Dish 11')).toBeInTheDocument();
   });
 });

@@ -116,4 +116,26 @@ describe('StaffManagementPage', () => {
       expect(staffService.getStaff).toHaveBeenCalledTimes(2);
     });
   });
+
+  it('paginates filtered staff lists', async () => {
+    staffService.getStaff.mockResolvedValue(
+      Array.from({ length: 11 }, (_, index) => ({
+        id: index + 1,
+        name: `Staff ${index + 1}`,
+        email: `staff-${index + 1}@test.local`,
+        role: index % 2 === 0 ? 'KITCHEN' : 'WAITER',
+        active: true,
+      })),
+    );
+
+    render(<StaffManagementPage />);
+
+    expect(await screen.findByText('Staff 1')).toBeInTheDocument();
+    expect(screen.queryByText('Staff 11')).not.toBeInTheDocument();
+    expect(screen.getByText('Showing 1-10 of 11 staff')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+    expect(screen.getByText('Staff 11')).toBeInTheDocument();
+  });
 });

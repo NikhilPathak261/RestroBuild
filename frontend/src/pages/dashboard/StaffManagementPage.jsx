@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'react-toastify';
+import PaginationControls from '../../components/PaginationControls';
 import * as staffService from '../../services/staffService';
 import { getApiErrorMessage } from '../../utils/apiError';
+import { DEFAULT_PAGE_SIZE, clampPage, paginateItems } from '../../utils/pagination';
 
 const emptyForm = {
   name: '',
@@ -19,6 +21,7 @@ function StaffManagementPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [page, setPage] = useState(1);
 
   const filteredStaff = useMemo(() => {
     const keyword = search.trim().toLowerCase();
@@ -34,6 +37,8 @@ function StaffManagementPage() {
       return matchesKeyword && matchesRole && matchesStatus;
     });
   }, [roleFilter, search, staff, statusFilter]);
+  const safePage = clampPage(page, filteredStaff.length, DEFAULT_PAGE_SIZE);
+  const visibleStaff = paginateItems(filteredStaff, safePage, DEFAULT_PAGE_SIZE);
 
   useEffect(() => {
     loadStaff();
@@ -45,6 +50,7 @@ function StaffManagementPage() {
     try {
       const response = await staffService.getStaff();
       setStaff(response);
+      setPage(1);
     } catch (error) {
       toast.error(getApiErrorMessage(error, 'Failed to load staff.'));
     } finally {
@@ -162,14 +168,31 @@ function StaffManagementPage() {
               aria-label="Search staff"
               placeholder="Search staff"
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
             />
-            <select aria-label="Filter staff role" value={roleFilter} onChange={(event) => setRoleFilter(event.target.value)}>
+            <select
+              aria-label="Filter staff role"
+              value={roleFilter}
+              onChange={(event) => {
+                setRoleFilter(event.target.value);
+                setPage(1);
+              }}
+            >
               <option value="">All roles</option>
               <option value="KITCHEN">Kitchen</option>
               <option value="WAITER">Waiter</option>
             </select>
-            <select aria-label="Filter staff status" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+            <select
+              aria-label="Filter staff status"
+              value={statusFilter}
+              onChange={(event) => {
+                setStatusFilter(event.target.value);
+                setPage(1);
+              }}
+            >
               <option value="">All statuses</option>
               <option value="ACTIVE">Active</option>
               <option value="DISABLED">Disabled</option>
@@ -184,55 +207,64 @@ function StaffManagementPage() {
           ) : filteredStaff.length === 0 ? (
             <div className="empty-state compact">No staff members found.</div>
           ) : (
-            <div className="responsive-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredStaff.map((member) => (
-                    <tr key={member.id}>
-                      <td>{member.name}</td>
-                      <td>{member.email}</td>
-                      <td>{member.role}</td>
-                      <td>{member.active ? 'Active' : 'Disabled'}</td>
-                      <td>
-                        <div className="table-actions">
-                          <button type="button" onClick={() => startEdit(member)}>
-                            Edit
-                          </button>
-                          <button
-                            className="ghost-button inline"
-                            type="button"
-                            onClick={() =>
-                              runAction(
-                                () => (member.active ? staffService.disableStaff(member.id) : staffService.enableStaff(member.id)),
-                                member.active ? 'Staff member disabled.' : 'Staff member enabled.',
-                              )
-                            }
-                          >
-                            {member.active ? 'Disable' : 'Enable'}
-                          </button>
-                          <button
-                            className="danger-button"
-                            type="button"
-                            onClick={() => runAction(() => staffService.deleteStaff(member.id), 'Staff member deleted.')}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+            <>
+              <div className="responsive-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Status</th>
+                      <th>Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {visibleStaff.map((member) => (
+                      <tr key={member.id}>
+                        <td>{member.name}</td>
+                        <td>{member.email}</td>
+                        <td>{member.role}</td>
+                        <td>{member.active ? 'Active' : 'Disabled'}</td>
+                        <td>
+                          <div className="table-actions">
+                            <button type="button" onClick={() => startEdit(member)}>
+                              Edit
+                            </button>
+                            <button
+                              className="ghost-button inline"
+                              type="button"
+                              onClick={() =>
+                                runAction(
+                                  () => (member.active ? staffService.disableStaff(member.id) : staffService.enableStaff(member.id)),
+                                  member.active ? 'Staff member disabled.' : 'Staff member enabled.',
+                                )
+                              }
+                            >
+                              {member.active ? 'Disable' : 'Enable'}
+                            </button>
+                            <button
+                              className="danger-button"
+                              type="button"
+                              onClick={() => runAction(() => staffService.deleteStaff(member.id), 'Staff member deleted.')}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <PaginationControls
+                currentPage={safePage}
+                totalItems={filteredStaff.length}
+                pageSize={DEFAULT_PAGE_SIZE}
+                label="staff"
+                onPageChange={setPage}
+              />
+            </>
           )}
         </section>
       </div>

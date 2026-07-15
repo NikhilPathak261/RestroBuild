@@ -84,6 +84,7 @@ Current backend coverage includes:
 - Rejection of reviews for unordered or unserved items.
 - Analytics summary and top-item calculations.
 - Health, request IDs, JWT, security errors, authenticated user guards, order timeline, and bill aggregation.
+- WebSocket order-topic subscription allow-listing and stale session cleanup.
 
 ---
 
@@ -114,6 +115,8 @@ Current frontend coverage includes:
 - Kitchen and waiter order screens.
 - Dashboard categories, menu, tables, staff, orders, reviews, restaurant profile, website settings, and analytics screens.
 - API response unwrapping, API error formatting, auth session storage, clipboard, QR utilities, realtime client behavior, and uploads.
+- Route-level lazy loading and real-time reconnect behavior.
+- Layout accessibility landmarks and skip links for public, owner, kitchen, and waiter shells.
 
 ---
 
@@ -163,6 +166,9 @@ Additional E2E checks:
 
 - Mobile public customer flow for opening the QR menu, adding multiple quantities to the server-backed cart, persisting the anonymous cart token, reviewing the cart total, and placing an order.
 - Negative API check that review submission is rejected before an order reaches `SERVED`.
+- Browser check that invalid login remains on the login page and shows the authentication error.
+- QR-context check that a table QR from another restaurant is rejected.
+- Unavailable dish check that hidden-from-public menu behavior matches backend cart rejection.
 
 ---
 

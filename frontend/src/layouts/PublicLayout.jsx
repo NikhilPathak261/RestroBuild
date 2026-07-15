@@ -8,7 +8,10 @@ function PublicLayout() {
   const tableQuery = tableId ? `?tableId=${tableId}` : '';
 
   return (
-    <main className="public-shell">
+    <div className="public-shell">
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
       <header className="public-header">
         <Link className="brand" to={`${basePath}${tableQuery}`}>RestroBuild</Link>
         <nav>
@@ -19,8 +22,10 @@ function PublicLayout() {
           <Link to={`${basePath}/contact${tableQuery}`}>Contact</Link>
         </nav>
       </header>
-      <Outlet />
-    </main>
+      <main id="main-content" tabIndex={-1}>
+        <Outlet />
+      </main>
+    </div>
   );
 }
 

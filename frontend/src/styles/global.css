@@ -14,6 +14,24 @@ body {
   min-width: 320px;
 }
 
+.skip-link {
+  background: #111827;
+  border-radius: 0 0 6px 0;
+  color: #fff;
+  font-weight: 800;
+  left: 0;
+  padding: 0.75rem 1rem;
+  position: fixed;
+  top: 0;
+  transform: translateY(-120%);
+  transition: transform 0.15s ease;
+  z-index: 1000;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
 a {
   color: #b42318;
   text-decoration: none;
@@ -291,6 +309,29 @@ button:disabled {
 
 .responsive-table {
   overflow-x: auto;
+}
+
+.pagination-controls {
+  align-items: center;
+  border-top: 1px solid #eaecf0;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+.pagination-controls span {
+  color: #667085;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.pagination-controls div {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
 table {
@@ -936,9 +977,15 @@ th {
     flex-direction: column;
   }
 
-  .list-header input {
+  .list-header input,
+  .list-header select {
     min-width: 0;
     width: 100%;
+  }
+
+  .pagination-controls {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .contact-grid {

@@ -367,6 +367,10 @@ Password hashes must never leave backend.
 
 JWT secret must be stored using environment variables.
 
+The production profile must fail fast when JWT secrets are missing, blank, too short, or still set to the development placeholder.
+
+Production CORS origins must be explicitly configured and must not contain wildcard or blank origins.
+
 Sensitive endpoints require authentication.
 
 Every request must validate JWT.
@@ -382,6 +386,8 @@ Application-level missing credential exceptions must return the standard `401 Au
 Every request must validate user role.
 
 Every request must validate restaurant ownership.
+
+Backend HTTP responses must include defensive browser security headers, including a restrictive content security policy, no-referrer policy, and frame denial.
 
 ---
 

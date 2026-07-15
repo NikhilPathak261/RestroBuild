@@ -98,6 +98,46 @@ test('rejects review submission before the order is served @desktop', async ({ r
   expect(responseBody.message).toBe('Reviews are allowed only after the order is served.');
 });
 
+test('rejects invalid owner login in the browser @desktop', async ({ page }) => {
+  await page.goto('/login');
+  await page.getByLabel('Email').fill('missing-owner@restrobuild.test');
+  await page.getByLabel('Password').fill('WrongPass123');
+  await page.getByRole('button', { name: 'Login' }).click();
+
+  await expect(page).toHaveURL(/\/login/);
+  await expect(page.getByText('Invalid email or password.')).toBeVisible();
+});
+
+test('blocks table QR context from a different restaurant @desktop', async ({ page, request }) => {
+  const first = await seedScenario(request, { staff: false });
+  const second = await seedScenario(request, { staff: false });
+
+  await page.goto(`/r/${first.restaurant.slug}?tableId=${second.table.id}`);
+
+  await expect(page.getByText('This table QR does not belong to this restaurant.')).toBeVisible();
+});
+
+test('prevents unavailable dishes from being ordered @desktop', async ({ page, request }) => {
+  const { ownerToken, restaurant, menuItem, table } = await seedScenario(request, { staff: false });
+  await apiPatch(request, `/menu-items/${menuItem.id}/availability`, { available: false }, ownerToken);
+
+  await page.goto(`/r/${restaurant.slug}/menu?tableId=${table.id}`);
+
+  await expect(page.getByRole('heading', { name: 'Choose your dishes' })).toBeVisible();
+  await expect(page.getByText(menuItem.name)).not.toBeVisible();
+  await expect(page.getByText('No dishes found.')).toBeVisible();
+
+  const response = await request.post(`${apiBaseURL}/cart/items`, {
+    data: {
+      menuItemId: menuItem.id,
+      quantity: 1,
+    },
+  });
+  expect(response.status()).toBe(422);
+  const responseBody = await response.json();
+  expect(responseBody.message).toBe('Menu item is not available.');
+});
+
 async function login(page, email, password) {
   await page.goto('/login');
   await page.getByLabel('Email').fill(email);
@@ -182,6 +222,16 @@ async function seedScenario(request, options = {}) {
 
 async function apiPost(request, path, body, token) {
   const response = await request.post(`${apiBaseURL}${path}`, {
+    data: body,
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  });
+  expect(response.ok(), `${path} returned ${response.status()}: ${await response.text()}`).toBeTruthy();
+  const json = await response.json();
+  return json.data ?? null;
+}
+
+async function apiPatch(request, path, body, token) {
+  const response = await request.patch(`${apiBaseURL}${path}`, {
     data: body,
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   });

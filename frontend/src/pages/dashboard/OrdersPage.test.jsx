@@ -100,4 +100,23 @@ describe('OrdersPage', () => {
       });
     });
   });
+
+  it('paginates large order lists', async () => {
+    orderService.getRestaurantOrders.mockResolvedValue(
+      Array.from({ length: 11 }, (_, index) => ({
+        ...ownerOrder,
+        id: index + 1,
+      })),
+    );
+
+    render(<OrdersPage />);
+
+    expect(await screen.findByText('#1')).toBeInTheDocument();
+    expect(screen.queryByText('#11')).not.toBeInTheDocument();
+    expect(screen.getByText('Showing 1-10 of 11 orders')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+    expect(screen.getByText('#11')).toBeInTheDocument();
+  });
 });

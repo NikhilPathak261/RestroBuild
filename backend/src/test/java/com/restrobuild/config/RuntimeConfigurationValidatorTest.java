@@ -31,6 +31,24 @@ class RuntimeConfigurationValidatorTest {
     }
 
     @Test
+    void rejectsBlankSecretInProductionProfile() {
+        MockEnvironment environment = new MockEnvironment();
+        environment.setActiveProfiles("prod");
+        RuntimeConfigurationValidator validator = new RuntimeConfigurationValidator(environment, " ", List.of("https://app.example.com"));
+
+        assertThrows(IllegalStateException.class, validator::validate);
+    }
+
+    @Test
+    void rejectsShortSecretInProductionProfile() {
+        MockEnvironment environment = new MockEnvironment();
+        environment.setActiveProfiles("prod");
+        RuntimeConfigurationValidator validator = new RuntimeConfigurationValidator(environment, "too-short", List.of("https://app.example.com"));
+
+        assertThrows(IllegalStateException.class, validator::validate);
+    }
+
+    @Test
     void allowsCustomSecretInProductionProfile() {
         MockEnvironment environment = new MockEnvironment();
         environment.setActiveProfiles("prod");
@@ -44,6 +62,24 @@ class RuntimeConfigurationValidatorTest {
         MockEnvironment environment = new MockEnvironment();
         environment.setActiveProfiles("prod");
         RuntimeConfigurationValidator validator = new RuntimeConfigurationValidator(environment, PRODUCTION_JWT_SECRET, List.of("*"));
+
+        assertThrows(IllegalStateException.class, validator::validate);
+    }
+
+    @Test
+    void rejectsMissingCorsOriginsInProductionProfile() {
+        MockEnvironment environment = new MockEnvironment();
+        environment.setActiveProfiles("prod");
+        RuntimeConfigurationValidator validator = new RuntimeConfigurationValidator(environment, PRODUCTION_JWT_SECRET, List.of());
+
+        assertThrows(IllegalStateException.class, validator::validate);
+    }
+
+    @Test
+    void rejectsBlankCorsOriginsInProductionProfile() {
+        MockEnvironment environment = new MockEnvironment();
+        environment.setActiveProfiles("prod");
+        RuntimeConfigurationValidator validator = new RuntimeConfigurationValidator(environment, PRODUCTION_JWT_SECRET, List.of("https://app.example.com", " "));
 
         assertThrows(IllegalStateException.class, validator::validate);
     }

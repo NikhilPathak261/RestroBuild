@@ -71,6 +71,10 @@ Layout
 
 Admin Layout
 
+Accessibility
+
+Includes a skip-to-main-content link and a stable `main` landmark.
+
 Authentication
 
 ROLE_OWNER
@@ -203,7 +207,7 @@ Route
 
 MVP Status
 
-Implemented with status, table number, and order date filters, owner order status actions, realtime refresh, and manual refresh control.
+Implemented with status, table number, and order date filters, owner order status actions, realtime refresh, manual refresh control, and client-side pagination for large MVP result sets.
 
 Purpose
 
@@ -225,7 +229,7 @@ Route
 
 MVP Status
 
-Implemented with rating filtering, manual refresh, hide/show moderation, and delete actions.
+Implemented with rating filtering, manual refresh, hide/show moderation, delete actions, and client-side pagination for large MVP result sets.
 
 Purpose
 
@@ -246,7 +250,7 @@ Route
 
 MVP Status
 
-Implemented with create/edit staff forms, search, role/status filters, manual refresh, enable/disable, and delete actions.
+Implemented with create/edit staff forms, search, role/status filters, manual refresh, enable/disable, delete actions, and client-side pagination for large MVP result sets.
 
 Purpose
 
@@ -293,6 +297,10 @@ Base Route
 Layout
 
 Staff Layout
+
+Accessibility
+
+Includes a skip-to-main-content link and a stable `main` landmark.
 
 Authentication
 
@@ -389,6 +397,10 @@ Public
 Layout
 
 Public Layout
+
+Accessibility
+
+Includes a skip-to-main-content link and wraps routed customer pages in a stable `main` landmark.
 
 ---
 
@@ -641,6 +653,10 @@ Initial application load
 Lazy-loaded pages
 
 Authentication verification
+
+MVP Status
+
+Implemented with route-level React lazy loading and a shared loading fallback while page chunks load.
 
 ---
 
