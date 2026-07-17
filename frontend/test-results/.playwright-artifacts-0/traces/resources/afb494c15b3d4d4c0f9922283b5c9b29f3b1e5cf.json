@@ -1,0 +1,1 @@
+{"success":true,"message":"Order marked ready successfully.","data":{"id":1,"tableId":1,"tableNumber":1,"status":"READY","totalAmount":275.00,"specialInstructions":"","orderedAt":"2026-07-17T17:11:18.373797Z","items":[{"id":1,"menuItemId":1,"menuItemName":"Browser Paneer","quantity":1,"price":275.00,"subtotal":275.00,"reviewed":false}]}}

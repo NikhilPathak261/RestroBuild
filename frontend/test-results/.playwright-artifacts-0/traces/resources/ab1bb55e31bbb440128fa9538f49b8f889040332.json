@@ -1,0 +1,1 @@
+{"success":true,"message":"Menu fetched successfully.","data":[{"id":1,"categoryId":1,"categoryName":"Browser Mains","name":"Browser Paneer","description":"E2E paneer dish","price":275.00,"imageUrl":"","foodType":"VEG","spicyLevel":2,"sweetLevel":1,"preparationTime":15,"available":true,"hidden":false}]}

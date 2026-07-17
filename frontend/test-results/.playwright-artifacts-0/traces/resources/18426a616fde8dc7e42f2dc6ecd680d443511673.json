@@ -1,0 +1,1 @@
+{"success":true,"message":"Cart fetched successfully.","data":{"cartToken":"082d91a6-0323-4c41-ac7e-72c03a60f5bd","items":[{"id":1,"menuItemId":1,"menuItemName":"Browser Paneer","quantity":1,"price":275.00,"subtotal":275.00,"specialInstructions":""}],"subtotal":275.00}}

@@ -1,0 +1,1 @@
+{"success":true,"message":"Order status fetched successfully.","data":{"orderId":1,"status":"PREPARING","estimatedTime":15}}

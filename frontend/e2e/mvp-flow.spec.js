@@ -14,7 +14,7 @@ test('MVP customer order lifecycle and owner analytics flow @desktop', async ({ 
   await page.waitForFunction(() => Boolean(window.sessionStorage.getItem('restrobuild.publicCartToken')));
   await page.getByRole('link', { name: 'Review cart' }).click();
   await expect(page.getByRole('heading', { name: 'Your order' })).toBeVisible();
-  await expect(page.getByText(menuItem.name)).toBeVisible();
+  await expect(page.getByRole('heading', { name: menuItem.name })).toBeVisible();
   await page.getByRole('button', { name: 'Place order' }).click();
   await expect(page).toHaveURL(/\/orders\/\d+\?tableId=/);
   const orderId = Number(page.url().match(/\/orders\/(\d+)/)[1]);
@@ -135,7 +135,7 @@ test('prevents unavailable dishes from being ordered @desktop', async ({ page, r
   });
   expect(response.status()).toBe(422);
   const responseBody = await response.json();
-  expect(responseBody.message).toBe('Menu item is not available.');
+  expect(responseBody.message).toBe('Menu item is unavailable.');
 });
 
 async function login(page, email, password) {

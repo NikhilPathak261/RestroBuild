@@ -1,0 +1,1 @@
+{"success":true,"message":"Order placed successfully.","data":{"id":2,"tableId":2,"tableNumber":1,"status":"PENDING","totalAmount":275.00,"specialInstructions":"Negative review E2E","orderedAt":"2026-07-17T17:12:06.510927600Z","items":[{"id":2,"menuItemId":2,"menuItemName":"Browser Paneer","quantity":1,"price":275.00,"subtotal":275.00,"reviewed":false}]}}
