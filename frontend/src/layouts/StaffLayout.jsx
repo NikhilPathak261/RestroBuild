@@ -6,13 +6,13 @@ function StaffLayout({ role }) {
   const navigate = useNavigate();
   const navItems = role === 'kitchen'
     ? [
-        { to: '/kitchen/pending', label: 'Pending Orders' },
-        { to: '/kitchen/preparing', label: 'Preparing Orders' },
-        { to: '/kitchen/ready', label: 'Ready Orders' },
+        { to: '/kitchen/pending', label: 'Pending Orders', icon: 'P' },
+        { to: '/kitchen/preparing', label: 'Preparing Orders', icon: 'K' },
+        { to: '/kitchen/ready', label: 'Ready Orders', icon: 'R' },
       ]
     : [
-        { to: '/waiter/ready', label: 'Ready Orders' },
-        { to: '/waiter/served', label: 'Served Orders' },
+        { to: '/waiter/ready', label: 'Ready Orders', icon: 'R' },
+        { to: '/waiter/served', label: 'Served Orders', icon: 'S' },
       ];
 
   function handleLogout() {
@@ -26,11 +26,15 @@ function StaffLayout({ role }) {
         Skip to main content
       </a>
       <aside className="sidebar">
-        <div className="brand">RestroBuild</div>
+        <div className="sidebar-top">
+          <div className="brand">RestroBuild</div>
+          <span>{role === 'kitchen' ? 'Kitchen live board' : 'Dining room service board'}</span>
+        </div>
         <nav>
           {navItems.map((item) => (
             <NavLink key={item.to} to={item.to}>
-              {item.label}
+              <span className="nav-icon" aria-hidden="true">{item.icon}</span>
+              <span>{item.label}</span>
             </NavLink>
           ))}
         </nav>

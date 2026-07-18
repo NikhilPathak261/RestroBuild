@@ -12,6 +12,10 @@ uploads/
 # Frontend dependencies and build
 frontend/node_modules/
 frontend/dist/
+frontend/test-results/
+frontend/playwright-report/
+test-results/
+playwright-report/
 
 # IDE
 .idea/

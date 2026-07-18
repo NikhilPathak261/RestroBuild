@@ -100,6 +100,8 @@ function AnalyticsPage() {
 }
 
 function AnalyticsList({ title, items, labelKey, valueKey, prefix = '' }) {
+  const maxValue = Math.max(...items.map((item) => Number(item[valueKey]) || 0), 0);
+
   return (
     <section className="list-panel">
       <h2>{title}</h2>
@@ -109,7 +111,12 @@ function AnalyticsList({ title, items, labelKey, valueKey, prefix = '' }) {
         <div className="analytics-list">
           {items.map((item) => (
             <div key={item[labelKey]}>
-              <span>{item[labelKey]}</span>
+              <span className="analytics-row-label">{item[labelKey]}</span>
+              <span
+                aria-label={`${item[labelKey]} ${prefix}${item[valueKey]}`}
+                className="analytics-bar"
+                style={{ '--bar-width': `${getBarWidth(item[valueKey], maxValue)}%` }}
+              />
               <strong>{prefix}{item[valueKey]}</strong>
             </div>
           ))}
@@ -117,6 +124,16 @@ function AnalyticsList({ title, items, labelKey, valueKey, prefix = '' }) {
       )}
     </section>
   );
+}
+
+function getBarWidth(value, maxValue) {
+  const numericValue = Number(value) || 0;
+
+  if (maxValue <= 0 || numericValue <= 0) {
+    return 0;
+  }
+
+  return Math.max(8, Math.round((numericValue / maxValue) * 100));
 }
 
 export default AnalyticsPage;

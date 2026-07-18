@@ -48,9 +48,12 @@ function DashboardPage() {
 
   return (
     <section className="page-stack">
-      <div>
-        <p className="eyebrow">Owner Dashboard</p>
-        <h1>Business overview</h1>
+      <div className="page-hero">
+        <div>
+          <p className="eyebrow">Owner Dashboard</p>
+          <h1>Business overview</h1>
+          <p>Track live service, revenue, guest feedback, and the dishes driving today&apos;s orders.</p>
+        </div>
         <button className="ghost-button inline" type="button" onClick={loadDashboard} disabled={isLoading}>
           {isLoading ? 'Refreshing...' : 'Refresh dashboard'}
         </button>

@@ -45,6 +45,8 @@ DB_PASSWORD=<local test mysql password>
 JWT_SECRET=<test jwt secret>
 ```
 
+The full Windows verification script pins the database to `restrobuild_test` by default through `VERIFY_DB_URL`, so an unrelated shell-level `DB_URL` cannot accidentally point destructive tests at the normal development database. Set `VERIFY_DB_URL` only when intentionally using another disposable test database.
+
 The checked-in `test` Spring profile uses `spring.jpa.hibernate.ddl-auto=create-drop`, so the schema is recreated for test runs. The database itself must exist before backend integration or Playwright tests start. The frontend command `npm run create:test-db` creates it using the local MySQL client.
 
 No real password, JWT secret, or personal credential should be committed to the repository.
@@ -183,13 +185,15 @@ Windows command:
 The script runs:
 
 - Backend tests.
-- Backend package.
+- Backend package with tests skipped after the test phase has already passed.
 - Frontend lint.
 - Frontend tests.
 - Frontend build.
 - Playwright E2E tests.
 
 The script exits non-zero on the first failed command.
+
+Generated Playwright outputs such as `frontend/test-results/` and `frontend/playwright-report/` are ignored and must not be committed.
 
 ---
 

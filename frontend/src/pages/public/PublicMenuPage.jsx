@@ -32,6 +32,10 @@ function PublicMenuPage() {
   const [isOrdering, setIsOrdering] = useState(false);
   const [error, setError] = useState('');
   const [ordersError, setOrdersError] = useState('');
+  const cartQuantity = useMemo(
+    () => cartItems.reduce((total, item) => total + Number(item.quantity ?? 0), 0),
+    [cartItems],
+  );
   const filteredItems = useMemo(() => {
     const keyword = search.trim().toLowerCase();
     const items = menuItems.filter((item) => {
@@ -213,9 +217,17 @@ function PublicMenuPage() {
 
   return (
     <section className="public-menu">
-      <div>
-        <p className="eyebrow">Menu</p>
-        <h1>Choose your dishes</h1>
+      <div className="public-menu-hero">
+        <div>
+          <p className="eyebrow">Menu</p>
+          <h1>Choose your dishes</h1>
+          <p>Browse the live menu, build your table cart, and send the order straight to the kitchen.</p>
+        </div>
+        <div className="menu-hero-summary" aria-label="Current cart summary">
+          <span>Cart total</span>
+          <strong>Total Rs. {cartSubtotal}</strong>
+          <small>{cartQuantity} item{cartQuantity === 1 ? '' : 's'} selected</small>
+        </div>
       </div>
 
       {tableId && (
@@ -361,8 +373,12 @@ function PublicMenuPage() {
                 <span>{item.categoryName}</span>
                 <h2>{item.name}</h2>
                 <p>{item.description}</p>
-                <p>{formatFoodType(item.foodType)} - {item.preparationTime ?? 0} min</p>
-                <p>Spice {item.spicyLevel ?? 0}/3 - Sweet {item.sweetLevel ?? 0}/3</p>
+                <div className="dish-badge-row">
+                  <small>{formatFoodType(item.foodType)}</small>
+                  <small>{item.preparationTime ?? 0} min</small>
+                  <small>Spice {item.spicyLevel ?? 0}/3</small>
+                  <small>Sweet {item.sweetLevel ?? 0}/3</small>
+                </div>
                 <strong>Rs. {item.price}</strong>
                 <Link className="ghost-button inline" to={`/r/${restaurantSlug}/menu/${item.id}${tableQuery}`}>
                   View details

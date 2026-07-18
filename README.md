@@ -1,4 +1,4 @@
-# 🍽️ RestroBuild
+# RestroBuild
 
 **RestroBuild** is a production-ready **Restaurant Website Builder & QR Ordering SaaS Platform** built with **Java, Spring Boot, React, and MySQL**.
 
@@ -8,7 +8,7 @@ It enables restaurant owners to create their own branded restaurant website with
 
 ---
 
-# ✨ Features
+# Features
 
 ## Restaurant Owner
 
@@ -55,7 +55,7 @@ It enables restaurant owners to create their own branded restaurant website with
 
 ---
 
-# 🏗️ Tech Stack
+# Tech Stack
 
 ## Frontend
 
@@ -88,7 +88,7 @@ It enables restaurant owners to create their own branded restaurant website with
 - Maven Wrapper
 - Vite
 
-# 📂 Project Structure
+# Project Structure
 
 ```text
 RESTROBUILD/
@@ -106,7 +106,7 @@ RESTROBUILD/
 
 ---
 
-# 🚀 Getting Started
+# Getting Started
 
 ## Clone Repository
 
@@ -235,7 +235,7 @@ The backend requires database and JWT environment variables for every profile. W
 
 ---
 
-# 📖 Core Modules
+# Core Modules
 
 - Authentication
 - Restaurant Management
@@ -251,7 +251,7 @@ The backend requires database and JWT environment variables for every profile. W
 
 ---
 
-# 🔒 Authentication
+# Authentication
 
 - JWT Authentication
 - Refresh Tokens
@@ -266,7 +266,7 @@ Roles
 
 ---
 
-# 📡 Real-Time Features
+# Features
 
 - Live Order Updates
 - Kitchen Queue Updates
@@ -277,7 +277,7 @@ Powered by Spring WebSocket.
 
 ---
 
-# 📱 Responsive Design
+# Responsive Design
 
 The application is fully responsive and supports
 
@@ -289,7 +289,7 @@ The customer website follows a mobile-first approach since it is primarily acces
 
 ---
 
-# 🛣️ Roadmap
+# Roadmap
 
 ## MVP
 
@@ -315,18 +315,18 @@ The customer website follows a mobile-first approach since it is primarily acces
 
 ---
 
-# 📄 License
+# License
 
 This project is currently intended for educational and portfolio purposes.
 
 ---
 
-# 👨‍💻 Author
+# Author
 
 **Nikhil Pathak**
 
-B.Tech CSE (2023–2027)
+B.Tech CSE (2023-2027)
 
 Backend & Full-Stack Developer
 
-Java • Spring Boot • React • MySQL
+Java / Spring Boot / React / MySQL

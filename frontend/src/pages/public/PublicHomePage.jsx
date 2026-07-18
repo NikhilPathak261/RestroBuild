@@ -80,6 +80,11 @@ function PublicHomePage() {
         <img className="public-cover" src={restaurant.coverImageUrl} alt={`${restaurant.name} cover`} />
       )}
       <div className="public-home-content">
+        <div className="public-hero-chip-row" aria-label="Restaurant service highlights">
+          <span>QR table ordering</span>
+          <span>Live kitchen updates</span>
+          <span>Fresh checkout</span>
+        </div>
         <div className="public-brand-row">
           {restaurant.logoUrl && (
             <img className="public-logo" src={restaurant.logoUrl} alt={`${restaurant.name} logo`} />
@@ -91,7 +96,8 @@ function PublicHomePage() {
         </div>
         <p>{restaurant.about || restaurant.description}</p>
         {qrContext && (
-          <div className="empty-state compact">
+          <div className="table-context-card">
+            <span>Your table</span>
             <strong>Table {qrContext.tableNumber}</strong>
             <p>Your orders will be linked to this table.</p>
           </div>
@@ -99,6 +105,12 @@ function PublicHomePage() {
         <div className="public-actions">
           <Link to={`/r/${restaurant.slug}/menu${tableQuery}`}>View menu</Link>
           <Link to={`/r/${restaurant.slug}/contact${tableQuery}`}>Contact</Link>
+        </div>
+        <div className="public-service-strip" aria-label="Ordering steps">
+          <span>Scan</span>
+          <span>Choose</span>
+          <span>Track</span>
+          <span>Enjoy</span>
         </div>
       </div>
     </section>

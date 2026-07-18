@@ -2,16 +2,16 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 const navItems = [
-  { to: '/dashboard', label: 'Dashboard' },
-  { to: '/dashboard/profile', label: 'Restaurant Profile' },
-  { to: '/dashboard/website', label: 'Website' },
-  { to: '/dashboard/categories', label: 'Categories' },
-  { to: '/dashboard/menu', label: 'Menu' },
-  { to: '/dashboard/tables', label: 'Tables' },
-  { to: '/dashboard/orders', label: 'Orders' },
-  { to: '/dashboard/reviews', label: 'Reviews' },
-  { to: '/dashboard/staff', label: 'Staff' },
-  { to: '/dashboard/analytics', label: 'Analytics' },
+  { to: '/dashboard', label: 'Dashboard', icon: 'D' },
+  { to: '/dashboard/profile', label: 'Restaurant Profile', icon: 'P' },
+  { to: '/dashboard/website', label: 'Website', icon: 'W' },
+  { to: '/dashboard/categories', label: 'Categories', icon: 'C' },
+  { to: '/dashboard/menu', label: 'Menu', icon: 'M' },
+  { to: '/dashboard/tables', label: 'Tables', icon: 'T' },
+  { to: '/dashboard/orders', label: 'Orders', icon: 'O' },
+  { to: '/dashboard/reviews', label: 'Reviews', icon: 'R' },
+  { to: '/dashboard/staff', label: 'Staff', icon: 'S' },
+  { to: '/dashboard/analytics', label: 'Analytics', icon: 'A' },
 ];
 
 function AdminLayout() {
@@ -29,11 +29,15 @@ function AdminLayout() {
         Skip to main content
       </a>
       <aside className="sidebar">
-        <div className="brand">RestroBuild</div>
+        <div className="sidebar-top">
+          <div className="brand">RestroBuild</div>
+          <span>Restaurant command center</span>
+        </div>
         <nav>
           {navItems.map((item) => (
             <NavLink key={item.to} to={item.to} end={item.to === '/dashboard'}>
-              {item.label}
+              <span className="nav-icon" aria-hidden="true">{item.icon}</span>
+              <span>{item.label}</span>
             </NavLink>
           ))}
         </nav>

@@ -15,11 +15,11 @@ function PublicLayout() {
       <header className="public-header">
         <Link className="brand" to={`${basePath}${tableQuery}`}>RestroBuild</Link>
         <nav>
-          <Link to={`${basePath}${tableQuery}`}>Home</Link>
-          <Link to={`${basePath}/menu${tableQuery}`}>Menu</Link>
-          <Link to={`${basePath}/cart${tableQuery}`}>Cart</Link>
-          <Link to={`${basePath}/about${tableQuery}`}>About</Link>
-          <Link to={`${basePath}/contact${tableQuery}`}>Contact</Link>
+          <Link to={`${basePath}${tableQuery}`}><span aria-hidden="true">H</span> Home</Link>
+          <Link to={`${basePath}/menu${tableQuery}`}><span aria-hidden="true">M</span> Menu</Link>
+          <Link to={`${basePath}/cart${tableQuery}`}><span aria-hidden="true">C</span> Cart</Link>
+          <Link to={`${basePath}/about${tableQuery}`}><span aria-hidden="true">A</span> About</Link>
+          <Link to={`${basePath}/contact${tableQuery}`}><span aria-hidden="true">P</span> Contact</Link>
         </nav>
       </header>
       <main id="main-content" tabIndex={-1}>

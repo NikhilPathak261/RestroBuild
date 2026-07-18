@@ -52,8 +52,11 @@ describe('AnalyticsPage', () => {
 
     expect(screen.getByText('Jul 08')).toBeInTheDocument();
     expect(screen.getByText('Rs. 2500')).toBeInTheDocument();
+    expect(screen.getByLabelText('Jul 08 Rs. 2500')).toBeInTheDocument();
     expect(screen.getByText('Biryani')).toBeInTheDocument();
+    expect(screen.getByLabelText('Biryani 12')).toBeInTheDocument();
     expect(screen.getByText('Mains')).toBeInTheDocument();
+    expect(screen.getByLabelText('Mains 20')).toBeInTheDocument();
     expect(screen.getByText('No data yet.')).toBeInTheDocument();
     expect(screen.getByText('5 star')).toBeInTheDocument();
     expect(screen.getByText('8')).toBeInTheDocument();

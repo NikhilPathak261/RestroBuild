@@ -14,6 +14,12 @@ function AuthLayout() {
           <p>
             Owners manage the restaurant, kitchen staff process live orders, and customers order from a mobile-first website.
           </p>
+          <div className="auth-feature-grid" aria-label="Platform highlights">
+            <span>Live orders</span>
+            <span>QR menus</span>
+            <span>Staff roles</span>
+            <span>Analytics</span>
+          </div>
         </div>
       </section>
     </main>
